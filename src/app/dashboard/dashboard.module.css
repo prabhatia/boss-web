@@ -1,0 +1,198 @@
+.shell { display: flex; min-height: 100vh; background: var(--bg); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar); flex-shrink: 0;
+  background: white; border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 1rem 0; gap: 1.25rem;
+  position: sticky; top: 0; height: 100vh;
+}
+.sidebarLogo { display: flex; text-decoration: none; }
+.sidebarNav { display: flex; flex-direction: column; gap: .35rem; flex: 1; }
+.sideLink {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.05rem; text-decoration: none; color: var(--muted);
+  transition: background .15s, color .15s;
+}
+.sideLink:hover { background: var(--bg); color: var(--ink); }
+.sideLinkActive { background: var(--primary-lt); color: var(--primary); }
+.signOut {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: none; border: none; cursor: pointer;
+  font-size: 1.05rem; color: var(--muted);
+}
+.signOut:hover { background: #FEF2F2; color: var(--red); }
+
+/* ── MAIN ── */
+.main { flex: 1; padding: 2rem; max-width: 1200px; }
+.pageHeader {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.h1 { font-size: 1.55rem; font-weight: 800; color: var(--ink); letter-spacing: -.5px; }
+.sub { font-size: .9rem; color: var(--muted); margin-top: .15rem; }
+.headerActions { display: flex; gap: .5rem; align-items: center; }
+.notifBtn {
+  position: relative; width: 38px; height: 38px; border-radius: 10px;
+  background: white; border: 1px solid var(--border);
+  cursor: pointer; font-size: 1rem;
+}
+.notifDot {
+  position: absolute; top: 8px; right: 9px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--red); border: 1.5px solid white;
+}
+
+/* ── BANNERS ── */
+.apiBar {
+  background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B;
+  border-radius: 10px; padding: .75rem 1rem;
+  font-size: .82rem; line-height: 1.6; margin-bottom: 1rem;
+}
+.completionBanner {
+  background: white; border: 1px solid var(--border); border-radius: 12px;
+  padding: 1rem 1.25rem; margin-bottom: 1.25rem;
+  display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+}
+.completionText { font-size: .85rem; color: var(--body); flex: 1; min-width: 240px; }
+.progressWrap { flex: 1; min-width: 180px; }
+.progressBar { height: 7px; border-radius: 999px; background: var(--bg); overflow: hidden; }
+.progressFill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), var(--purple));
+  transition: width .4s ease;
+}
+
+/* ── GRID ── */
+.grid {
+  display: grid; grid-template-columns: 320px minmax(0, 1fr);
+  gap: 1.25rem; align-items: start;
+}
+
+.card {
+  background: white; border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.25rem 1.4rem;
+}
+.cardHead {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap;
+}
+.cardTitle { font-size: 1rem; font-weight: 700; color: var(--ink); }
+.cardHint { font-size: .75rem; color: var(--muted); }
+.cardLink { font-size: .8rem; color: var(--primary); text-decoration: none; font-weight: 600; }
+.cardLink:hover { text-decoration: underline; }
+
+/* ── PROFILE CARD ── */
+.profileCard {
+  background: white; border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden;
+}
+.profileBanner {
+  height: 72px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+}
+.profileAvWrap { display: flex; justify-content: center; margin-top: -34px; }
+.profileAv, .profileAvFallback {
+  width: 68px; height: 68px; border-radius: 50%;
+  border: 3px solid white; object-fit: cover;
+}
+.profileAvFallback {
+  background: linear-gradient(135deg,#93C5FD,#818CF8);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: 1.35rem;
+}
+.profileInfo { padding: .85rem 1.25rem 1.4rem; text-align: center; }
+.profileName { font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+.profileRole { font-size: .85rem; color: var(--body); margin-top: .15rem; }
+.profileHeadline { font-size: .78rem; color: var(--muted); margin-top: .2rem; }
+
+.statRow {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: .5rem; margin: 1.1rem 0 .9rem;
+  padding: .8rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.psVal { font-size: 1rem; font-weight: 700; color: var(--ink); }
+.psLbl { font-size: .68rem; color: var(--muted); margin-top: .1rem; }
+
+.providerRow { display: flex; gap: .35rem; justify-content: center; flex-wrap: wrap; }
+.providerPill {
+  font-size: .68rem; font-weight: 600; padding: .18rem .55rem;
+  border-radius: 999px; background: var(--bg); color: var(--primary);
+}
+
+/* ── CONNECTIONS ── */
+.connCards { display: flex; flex-direction: column; gap: .6rem; }
+.connCard {
+  display: flex; align-items: center; gap: .8rem;
+  padding: .7rem; border: 1px solid var(--border); border-radius: 10px;
+}
+.connAv {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg,#93C5FD,#818CF8);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: .82rem;
+}
+.connInfo { flex: 1; min-width: 0; }
+.connName { font-size: .88rem; font-weight: 600; color: var(--ink); }
+.connRole { font-size: .78rem; color: var(--muted); }
+.connReason { font-size: .7rem; color: var(--primary); margin-top: .15rem; }
+
+/* ── JOBS ── */
+.jobCards { display: flex; flex-direction: column; gap: .6rem; }
+.jobCard {
+  display: flex; align-items: center; gap: .9rem;
+  padding: .85rem; border: 1px solid var(--border); border-radius: 10px;
+  transition: border-color .15s;
+}
+.jobCard:hover { border-color: var(--primary-ring); }
+.jobCoLogo {
+  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+  background: var(--bg); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.1rem;
+}
+.jobInfo { flex: 1; min-width: 0; }
+.jobTitle { font-size: .9rem; font-weight: 600; color: var(--ink); }
+.jobCo { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
+.jobTags { display: flex; gap: .35rem; margin-top: .4rem; flex-wrap: wrap; }
+.tag, .tagMuted, .tagFeatured {
+  font-size: .68rem; font-weight: 600;
+  padding: .15rem .5rem; border-radius: 999px;
+}
+.tag { background: #ECFDF5; color: #065F46; }
+.tagMuted { background: var(--bg); color: var(--muted); }
+.tagFeatured { background: var(--amber-lt); color: var(--amber-dk); }
+
+.matchScore { text-align: right; flex-shrink: 0; max-width: 130px; }
+.matchPct { font-size: 1.15rem; font-weight: 800; color: var(--primary); line-height: 1; }
+.matchLabel { font-size: .66rem; color: var(--muted); margin-top: .2rem; line-height: 1.4; }
+
+/* ── EMPTY / SKELETON ── */
+.empty { text-align: center; padding: 2rem 1rem; }
+.emptyIcon { font-size: 1.8rem; margin-bottom: .5rem; }
+.emptyTitle { font-size: .92rem; font-weight: 600; color: var(--ink); margin-bottom: .3rem; }
+.emptyBody { font-size: .8rem; color: var(--muted); max-width: 380px; margin: 0 auto; line-height: 1.6; }
+
+.skeletonRow {
+  height: 62px; border-radius: 10px;
+  background: linear-gradient(90deg, var(--bg) 25%, #F8FAFC 50%, var(--bg) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .main { padding: 1.25rem; }
+  .completionBanner { flex-direction: column; align-items: stretch; gap: .75rem; }
+  .jobCard { flex-wrap: wrap; }
+  .matchScore { text-align: left; max-width: none; }
+}

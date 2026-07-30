@@ -1,0 +1,33 @@
+.page { min-height: 60vh; }
+.header {
+  background: linear-gradient(160deg, #EFF6FF 0%, #F5F3FF 100%);
+  padding: 3rem 2rem 2.5rem; border-bottom: 1px solid var(--border);
+}
+.title { font-size: clamp(1.7rem, 3vw, 2.3rem); font-weight: 800; color: var(--ink); letter-spacing: -.5px; }
+.sub { font-size: .95rem; color: var(--muted); max-width: 520px; margin-top: .5rem; }
+
+.section { margin-bottom: 2.75rem; scroll-margin-top: 84px; }
+.sectionHeading {
+  font-size: .8rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--primary); margin-bottom: 1rem;
+}
+.items { display: flex; flex-direction: column; gap: .6rem; }
+.item {
+  background: white; border: 1px solid var(--border);
+  border-radius: 12px; padding: 1rem 1.25rem;
+  transition: border-color .15s;
+}
+.item[open] { border-color: var(--primary-ring); }
+.q {
+  font-size: .95rem; font-weight: 600; color: var(--ink);
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.q::-webkit-details-marker { display: none; }
+.q::after { content: '+'; font-size: 1.2rem; color: var(--muted); font-weight: 400; flex-shrink: 0; }
+.item[open] .q::after { content: '−'; }
+.a {
+  font-size: .88rem; color: var(--body); line-height: 1.7;
+  margin-top: .75rem; padding-top: .75rem;
+  border-top: 1px solid var(--border);
+}
