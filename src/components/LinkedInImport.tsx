@@ -131,10 +131,10 @@ export function LinkedInImport({ onImported }: { onImported?: () => void }) {
         <button
           onClick={importFromSession}
           disabled={state === 'importing'}
-          style={btnLinkedIn}
+          style={btnLinkedInSync}
         >
           <LinkedInIcon />
-          {state === 'importing' ? 'Importing…' : 'Import from LinkedIn'}
+          {state === 'importing' ? 'Syncing…' : 'Sync from LinkedIn'}
         </button>
       )}
 
@@ -188,6 +188,16 @@ const btnLinkedIn: React.CSSProperties = {
   cursor: 'pointer',
   width: '100%',
   transition: 'background .15s',
+};
+
+/** Smaller, non-full-width variant — used once LinkedIn is already connected, so this reads as a lightweight re-sync action rather than the primary connect CTA. */
+const btnLinkedInSync: React.CSSProperties = {
+  ...btnLinkedIn,
+  display: 'inline-flex',
+  width: 'auto',
+  padding: '.35rem .75rem',
+  fontSize: '.72rem',
+  borderRadius: 999,
 };
 
 function LinkedInIcon() {

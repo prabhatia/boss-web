@@ -5,11 +5,16 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BossLogo } from '@/components/BossLogo';
 import { LinkedInImport } from '@/components/LinkedInImport';
+import { ResumeImport } from './ResumeImport';
+import { InfoTooltip } from '@/components/InfoTooltip';
+import { InviteFriend } from './InviteFriend';
 import { createClient } from '@/lib/supabase/client';
 import {
   api,
   ApiError,
   type ProfileResponse,
+  type EmploymentHistoryResponse,
+  type SkillResponse,
   type SuggestedConnection,
   type RecommendedJob,
 } from '@/lib/api';
@@ -83,6 +88,7 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
         <nav className={styles.sidebarNav}>
           <SideLink href="/dashboard" icon="◉" label="Dashboard" active />
           <SideLink href="/companies" icon="🏢" label="Companies" />
+          <SideLink href="/people" icon="🧑‍💼" label="People" />
           <SideLink href="/jobs" icon="💼" label="Jobs" />
           <SideLink href="/faq" icon="?" label="Help" />
         </nav>
@@ -101,6 +107,9 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
           <div className={styles.headerActions}>
             <button className={styles.notifBtn} aria-label="Notifications">
               🔔<span className={styles.notifDot} />
+            </button>
+            <button onClick={signOut} className={styles.logoutBtn}>
+              Log out
             </button>
           </div>
         </header>
@@ -128,6 +137,7 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
         )}
 
         <div className={styles.grid}>
+          <div className={styles.leftCol}>
           {/* ── PROFILE CARD ── */}
           <section className={styles.profileCard}>
             <div className={styles.profileBanner} />
@@ -149,6 +159,15 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
                 {profile?.location ?? initialUser.email}
               </div>
 
+              <div className={styles.tokensRow}>
+                <span className={styles.tokensLabel}>🪙 {profile?.tokens ?? 0} tokens</span>
+                <InfoTooltip
+                  text={
+                    'Earn 10 tokens each time you rate a company, rate a manager, or enter salary data for a position. Earn 5 tokens per valid email address when you invite a friend.'
+                  }
+                />
+              </div>
+
               <div className={styles.statRow}>
                 <div>
                   <div className={styles.psVal}>{profile?.connectionCount ?? 0}</div>
@@ -166,18 +185,104 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
                 </div>
               </div>
 
-              <div className={styles.providerRow}>
-                {initialUser.providers.map((p) => (
-                  <span key={p} className={styles.providerPill}>
-                    {p === 'linkedin_oidc' ? 'LinkedIn' : p === 'google' ? 'Google' : p === 'apple' ? 'Apple' : p}
-                  </span>
-                ))}
-              </div>
+              {initialUser.providers.length > 0 && (
+                <div className={styles.providerSection}>
+                  <span className={styles.providerLabel}>Profiles imported:</span>
+                  <div className={styles.providerRow}>
+                    {initialUser.providers.map((p) => (
+                      <span key={p} className={styles.providerPill}>
+                        {p === 'linkedin_oidc' ? 'LinkedIn' : p === 'google' ? 'Google' : p === 'apple' ? 'Apple' : p}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <LinkedInImport onImported={load} />
+              <ResumeImport onImported={load} />
             </div>
           </section>
 
+          {/* ── INVITE A FRIEND ── */}
+          <section className={styles.card}>
+            <div className={styles.cardHead}>
+              <h2 className={styles.cardTitle}>Invite a friend</h2>
+              <span className={styles.cardHint}>Earn 5 tokens per invite</span>
+            </div>
+            <InviteFriend />
+          </section>
+
+          {/* ── SKILLS ── */}
+          <section className={styles.card}>
+            <div className={styles.cardHead}>
+              <h2 className={styles.cardTitle}>Skills</h2>
+              <span className={styles.cardHint}>Most recently used first</span>
+            </div>
+
+            {loading ? (
+              <SkeletonRows n={1} />
+            ) : !profile?.skills?.length ? (
+              <EmptyState
+                icon="🛠️"
+                title="No skills added yet"
+                body="Import your resume or LinkedIn profile to pull in your skills."
+              />
+            ) : (
+              <div className={styles.skillPills}>
+                {rankSkillsByRecency(profile.skills, sortExperience(profile.employmentHistory)).map((s) => (
+                  <span
+                    key={s.skillId}
+                    className={s.isHighlighted ? styles.skillPillHighlighted : styles.skillPill}
+                  >
+                    {s.skillName}
+                  </span>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* ── EXPERIENCE ── */}
+          <section className={styles.card}>
+            <div className={styles.cardHead}>
+              <h2 className={styles.cardTitle}>Experience</h2>
+            </div>
+
+            {loading ? (
+              <SkeletonRows n={2} />
+            ) : !profile?.employmentHistory?.length ? (
+              <EmptyState
+                icon="💼"
+                title="No experience added yet"
+                body="Import your resume or LinkedIn profile to build out your work history."
+              />
+            ) : (
+              <div className={styles.expList}>
+                {sortExperience(profile.employmentHistory).map((e) => (
+                  <article key={e.id} className={styles.expItem}>
+                    <div className={styles.expLogo}>
+                      {(e.companyName ?? '?')[0]?.toUpperCase()}
+                    </div>
+                    <div className={styles.expInfo}>
+                      <div className={styles.expTitleRow}>
+                        <span className={styles.expRole}>{e.roleTitle}</span>
+                        {e.isCurrent && <span className={styles.tag}>Current</span>}
+                      </div>
+                      <div className={styles.expCompany}>{e.companyName}</div>
+                      <div className={styles.expMeta}>
+                        {formatMonthYear(e.startDate)} – {e.isCurrent ? 'Present' : formatMonthYear(e.endDate)}
+                        {e.location && ` · ${e.location}`}
+                        {e.isRemote && ' · Remote'}
+                      </div>
+                      {e.description && <p className={styles.expDesc}>{e.description}</p>}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+          </div>
+
+          <div className={styles.rightCol}>
           {/* ── SUGGESTED CONNECTIONS ── */}
           <section className={styles.card}>
             <div className={styles.cardHead}>
@@ -219,7 +324,7 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
           </section>
 
           {/* ── RECOMMENDED JOBS ── */}
-          <section className={styles.card} style={{ gridColumn: '1 / -1' }}>
+          <section className={styles.card}>
             <div className={styles.cardHead}>
               <h2 className={styles.cardTitle}>Jobs matched to your values</h2>
               <Link href="/jobs" className={styles.cardLink}>View all jobs →</Link>
@@ -265,6 +370,7 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
               </div>
             )}
           </section>
+          </div>
         </div>
       </main>
     </div>
@@ -272,6 +378,71 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
 }
 
 /* ── helpers ─────────────────────────────────────────────────────── */
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** Formats a "YYYY-MM-DD" LocalDate string as "Mon YYYY" without going through Date/timezone parsing. */
+function formatMonthYear(iso: string | null): string {
+  if (!iso) return '—';
+  const [year, month] = iso.split('-');
+  const label = MONTHS[Number(month) - 1];
+  return label ? `${label} ${year}` : year;
+}
+
+function sortExperience(list: EmploymentHistoryResponse[]): EmploymentHistoryResponse[] {
+  return [...list].sort((a, b) => {
+    if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1;
+    return (b.startDate ?? '').localeCompare(a.startDate ?? '');
+  });
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * `\b` requires a word/non-word transition, which fails when a skill name
+ * ends or starts with a non-word character (e.g. "C++", "C#") followed or
+ * preceded by whitespace — two non-word characters never form a boundary.
+ * Lookarounds that just check "not alphanumeric" work regardless of what
+ * character the skill name itself starts/ends with.
+ */
+function wholeTermPattern(term: string): RegExp {
+  return new RegExp(`(?<![A-Za-z0-9])${escapeRegExp(term)}(?![A-Za-z0-9])`, 'i');
+}
+
+/**
+ * Unique skills (by name), ordered by how recently they were used: each
+ * skill is matched (whole-word, case-insensitive) against the role title and
+ * description of every position, positions already sorted most-recent-first.
+ * A skill's rank is the index of the most recent position mentioning it;
+ * skills never mentioned in any position sink to the end, in their original
+ * (server-returned) relative order.
+ */
+function rankSkillsByRecency(
+  skills: SkillResponse[],
+  positionsMostRecentFirst: EmploymentHistoryResponse[],
+): SkillResponse[] {
+  const seen = new Set<string>();
+  const unique = skills.filter((s) => {
+    const key = s.skillName.trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  const rank = new Map<string, number>();
+  unique.forEach((s, i) => {
+    const pattern = wholeTermPattern(s.skillName);
+    const idx = positionsMostRecentFirst.findIndex(
+      (p) => pattern.test(p.roleTitle) || (!!p.description && pattern.test(p.description)),
+    );
+    // Not found → rank after every position, preserving original relative order.
+    rank.set(s.skillId, idx === -1 ? positionsMostRecentFirst.length + i : idx);
+  });
+
+  return [...unique].sort((a, b) => (rank.get(a.skillId) ?? 0) - (rank.get(b.skillId) ?? 0));
+}
 
 function computeCompletion(p: ProfileResponse | null): number {
   if (!p) return 20;

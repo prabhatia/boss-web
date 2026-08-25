@@ -19,6 +19,7 @@ export function Nav({ signedIn = false }: { signedIn?: boolean }) {
         <li><Link href="/#pricing" onClick={() => setOpen(false)}>Pricing</Link></li>
         <li><Link href="/faq" onClick={() => setOpen(false)}>FAQ</Link></li>
         <li><Link href="/companies" onClick={() => setOpen(false)}>Companies</Link></li>
+        <li><Link href="/people" onClick={() => setOpen(false)}>People</Link></li>
         <li><Link href="/jobs" onClick={() => setOpen(false)}>Jobs</Link></li>
       </ul>
 

@@ -29,6 +29,14 @@
 
 html { scroll-behavior: smooth; }
 
+/* ── InfoTooltip (src/components/InfoTooltip.tsx) — CSS-only hover/focus reveal ── */
+.info-tooltip-bubble { opacity: 0; visibility: hidden; transition: opacity .12s ease; }
+.info-tooltip:hover .info-tooltip-bubble,
+.info-tooltip:focus .info-tooltip-bubble,
+.info-tooltip:focus-within .info-tooltip-bubble {
+  opacity: 1; visibility: visible;
+}
+
 body {
   font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--body);

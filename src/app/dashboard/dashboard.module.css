@@ -44,6 +44,12 @@
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--red); border: 1.5px solid white;
 }
+.logoutBtn {
+  height: 38px; padding: 0 .9rem; border-radius: 10px;
+  background: white; border: 1px solid var(--border);
+  cursor: pointer; font-size: .82rem; font-weight: 600; color: var(--body);
+}
+.logoutBtn:hover { background: #FEF2F2; border-color: #FECACA; color: var(--red); }
 
 /* ── BANNERS ── */
 .apiBar {
@@ -67,9 +73,10 @@
 
 /* ── GRID ── */
 .grid {
-  display: grid; grid-template-columns: 320px minmax(0, 1fr);
+  display: grid; grid-template-columns: 440px minmax(0, 1fr);
   gap: 1.25rem; align-items: start;
 }
+.leftCol, .rightCol { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
 
 .card {
   background: white; border: 1px solid var(--border);
@@ -108,6 +115,9 @@
 .profileRole { font-size: .85rem; color: var(--body); margin-top: .15rem; }
 .profileHeadline { font-size: .78rem; color: var(--muted); margin-top: .2rem; }
 
+.tokensRow { display: flex; align-items: center; justify-content: center; gap: .2rem; margin-top: .5rem; }
+.tokensLabel { font-size: .8rem; font-weight: 700; color: var(--amber-dk); }
+
 .statRow {
   display: grid; grid-template-columns: repeat(3, 1fr);
   gap: .5rem; margin: 1.1rem 0 .9rem;
@@ -116,11 +126,41 @@
 .psVal { font-size: 1rem; font-weight: 700; color: var(--ink); }
 .psLbl { font-size: .68rem; color: var(--muted); margin-top: .1rem; }
 
+.providerSection { margin-top: .7rem; }
+.providerLabel { display: block; font-size: .68rem; font-weight: 600; color: var(--muted); margin-bottom: .3rem; }
 .providerRow { display: flex; gap: .35rem; justify-content: center; flex-wrap: wrap; }
 .providerPill {
   font-size: .68rem; font-weight: 600; padding: .18rem .55rem;
   border-radius: 999px; background: var(--bg); color: var(--primary);
 }
+
+/* ── SKILLS ── */
+.skillPills { display: flex; flex-wrap: wrap; gap: .45rem; }
+.skillPill, .skillPillHighlighted {
+  font-size: .78rem; font-weight: 600; padding: .32rem .75rem;
+  border-radius: 999px; white-space: nowrap;
+}
+.skillPill { background: var(--bg); color: var(--body); }
+.skillPillHighlighted { background: var(--primary-lt); color: var(--primary); }
+
+/* ── EXPERIENCE ── */
+.expList { display: flex; flex-direction: column; gap: .7rem; }
+.expItem {
+  display: flex; gap: .75rem;
+  padding: .75rem; border: 1px solid var(--border); border-radius: 10px;
+}
+.expLogo {
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  background: var(--bg); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1rem;
+}
+.expInfo { flex: 1; min-width: 0; }
+.expTitleRow { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.expRole { font-size: .88rem; font-weight: 700; color: var(--ink); }
+.expCompany { font-size: .8rem; color: var(--body); margin-top: .1rem; }
+.expMeta { font-size: .7rem; color: var(--muted); margin-top: .2rem; }
+.expDesc { font-size: .78rem; color: var(--body); margin-top: .45rem; line-height: 1.55; }
 
 /* ── CONNECTIONS ── */
 .connCards { display: flex; flex-direction: column; gap: .6rem; }

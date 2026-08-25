@@ -237,7 +237,7 @@ export default async function LandingPage() {
             <article className={`${styles.pricingCard} ${styles.popular}`}>
               <span className={styles.popularBadge}>Most popular</span>
               <div className={styles.planName}>Candidate Premium</div>
-              <div className={styles.planPrice}>$12<span>/mo</span></div>
+              <div className={styles.planPrice}>$19<span>/mo</span></div>
               <p className={styles.planDesc}>For professionals actively managing their career.</p>
               <ul className={styles.planFeatures}>
                 <li>Everything in Free</li>
@@ -245,9 +245,28 @@ export default async function LandingPage() {
                 <li>AI job recommendations</li>
                 <li>Advanced company analytics</li>
                 <li>Who viewed your profile</li>
+                <li>10 AI-assisted job applications/mo</li>
+                <li>10 connection initiations/mo</li>
               </ul>
               <Link href="/login" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
                 Start free trial
+              </Link>
+            </article>
+
+            <article className={styles.pricingCard}>
+              <div className={styles.planName}>Candidate Pro</div>
+              <div className={styles.planPrice}>$50<span>/mo</span></div>
+              <p className={styles.planDesc}>For an active job search — no limits.</p>
+              <ul className={styles.planFeatures}>
+                <li>Everything in Candidate Premium</li>
+                <li>Unlimited AI-assisted job applications</li>
+                <li>Unlimited connection initiations</li>
+              </ul>
+              <Link href="/login" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
+                Start free trial
+              </Link>
+              <Link href="/login" className={styles.planAnnual}>
+                Pay annually — $500/yr <span className={styles.planSave}>Save $100</span>
               </Link>
             </article>
 

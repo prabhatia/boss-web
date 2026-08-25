@@ -24,8 +24,9 @@
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
 .coCard {
-  background: white; border: 1px solid var(--border);
+  display: block; background: white; border: 1px solid var(--border);
   border-radius: 14px; padding: 1.25rem; transition: border-color .15s;
+  text-decoration: none; color: inherit;
 }
 .coCard:hover { border-color: var(--primary-ring); }
 .coHead { display: flex; gap: .8rem; align-items: center; margin-bottom: 1rem; }
@@ -42,7 +43,6 @@
 .scoreRow { display: flex; align-items: baseline; gap: .35rem; }
 .scoreBig { font-size: 1.9rem; font-weight: 900; color: var(--ink); line-height: 1; }
 .scoreOutOf { font-size: .85rem; color: var(--muted); }
-.stars { color: var(--amber); font-size: .9rem; letter-spacing: 1px; margin-left: .35rem; }
 .coFooter {
   display: flex; justify-content: space-between; align-items: center;
   margin-top: .85rem; padding-top: .85rem; border-top: 1px solid var(--border);

@@ -1,21 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import Link from 'next/link';
+import { api, type CompanySearchResult } from '@/lib/api';
 import styles from './companies.module.css';
-
-interface CompanySearchResult {
-  id: string;
-  name: string;
-  slug: string;
-  industry: string;
-  headquarters: string | null;
-  logoUrl: string | null;
-  verified: boolean;
-  avgOverallScore: number | null;
-  recommendPct: number | null;
-  reviewCount: number;
-}
 
 interface Page<T> { content: T[]; totalElements: number; }
 
@@ -101,7 +89,7 @@ export function CompaniesClient() {
         ) : (
           <div className={styles.grid}>
             {companies.map((c) => (
-              <article key={c.id} className={styles.coCard}>
+              <Link key={c.id} href={`/companies/${c.slug}`} className={styles.coCard}>
                 <div className={styles.coHead}>
                   <div className={styles.coLogo}>{c.name[0]}</div>
                   <div>
@@ -119,17 +107,13 @@ export function CompaniesClient() {
                   <>
                     <div className={styles.scoreRow}>
                       <span className={styles.scoreBig}>{c.avgOverallScore.toFixed(1)}</span>
-                      <span className={styles.scoreOutOf}>/ 5</span>
-                      <span className={styles.stars} aria-hidden="true">
-                        {'★'.repeat(Math.round(c.avgOverallScore))}
-                        {'☆'.repeat(5 - Math.round(c.avgOverallScore))}
-                      </span>
+                      <span className={styles.scoreOutOf}>/ 10</span>
                     </div>
                     <div className={styles.coFooter}>
                       <span>{c.reviewCount} reviews</span>
-                      {c.recommendPct != null && (
+                      {c.avgWouldRecommendScore != null && (
                         <span className={styles.recommend}>
-                          {Math.round(c.recommendPct)}% recommend
+                          {c.avgWouldRecommendScore.toFixed(1)}/10 would recommend
                         </span>
                       )}
                     </div>
@@ -139,7 +123,7 @@ export function CompaniesClient() {
                     Scores appear at 5 reviews · {c.reviewCount} so far
                   </div>
                 )}
-              </article>
+              </Link>
             ))}
           </div>
         )}
