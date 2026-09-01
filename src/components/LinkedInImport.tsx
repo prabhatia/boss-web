@@ -103,6 +103,11 @@ export function LinkedInImport({ onImported }: { onImported?: () => void }) {
         displayName: displayName || undefined,
       });
 
+      // Best-effort: awards 5 tokens on the first-ever LinkedIn sync only
+      // (server-side idempotency via linkedinImportedAt) — never blocks the
+      // import itself if it fails.
+      api.patch('profile', '/profiles/me/tokens/earn', { reason: 'LINKEDIN_IMPORT' }).catch(() => {});
+
       setState('done');
       setMessage(
         'Imported your name, email, and photo from LinkedIn. Add your work history below — LinkedIn does not release job history to third-party apps.'
