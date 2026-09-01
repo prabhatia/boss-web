@@ -173,6 +173,8 @@ export interface ProfileResponse {
   skills: SkillResponse[];
   connectionCount: number;
   createdAt: string;
+  gender: 'MALE' | 'FEMALE' | 'DECLINE_TO_IDENTIFY' | null;
+  prefix: string | null;
 }
 
 export interface SuggestedConnection {

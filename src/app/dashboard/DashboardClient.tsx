@@ -8,6 +8,8 @@ import { LinkedInImport } from '@/components/LinkedInImport';
 import { ResumeImport } from './ResumeImport';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { InviteFriend } from './InviteFriend';
+import { AddPasswordPanel } from './AddPasswordPanel';
+import { EditProfileModal } from './EditProfileModal';
 import { createClient } from '@/lib/supabase/client';
 import {
   api,
@@ -36,6 +38,7 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
   const [jobs, setJobs] = useState<RecommendedJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [apiDown, setApiDown] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -142,9 +145,9 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
           <section className={styles.profileCard}>
             <div className={styles.profileBanner} />
             <div className={styles.profileAvWrap}>
-              {initialUser.avatarUrl ? (
+              {(profile?.avatarUrl ?? initialUser.avatarUrl) ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={initialUser.avatarUrl} alt="" className={styles.profileAv} />
+                <img src={profile?.avatarUrl ?? initialUser.avatarUrl!} alt="" className={styles.profileAv} />
               ) : (
                 <div className={styles.profileAvFallback}>{initials}</div>
               )}
@@ -158,6 +161,18 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
               <div className={styles.profileHeadline}>
                 {profile?.location ?? initialUser.email}
               </div>
+
+              <button
+                type="button"
+                onClick={() => setEditOpen(true)}
+                style={{
+                  margin: '.5rem 0 0', padding: '.4rem .9rem', borderRadius: 8,
+                  border: '1px solid var(--border)', background: 'white', color: 'var(--primary)',
+                  fontWeight: 600, fontSize: '.78rem', fontFamily: 'inherit', cursor: 'pointer',
+                }}
+              >
+                Edit Profile
+              </button>
 
               <div className={styles.tokensRow}>
                 <span className={styles.tokensLabel}>🪙 {profile?.tokens ?? 0} tokens</span>
@@ -198,10 +213,18 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
                   <div className={styles.providerRow}>
                     {initialUser.providers.map((p) => (
                       <span key={p} className={styles.providerPill}>
-                        {p === 'linkedin_oidc' ? 'LinkedIn' : p === 'google' ? 'Google' : p === 'apple' ? 'Apple' : p}
+                        {p === 'linkedin_oidc' ? 'LinkedIn' : p === 'google' ? 'Google' : p === 'apple' ? 'Apple' : p === 'email' ? 'Email' : p}
                       </span>
                     ))}
                   </div>
+                  {!initialUser.providers.includes('email') && (
+                    <div style={{ marginTop: '.6rem' }}>
+                      <AddPasswordPanel
+                        email={initialUser.email}
+                        onDone={() => { router.refresh(); load(); }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -380,6 +403,14 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
           </div>
         </div>
       </main>
+
+      {editOpen && (
+        <EditProfileModal
+          profile={profile}
+          onClose={() => setEditOpen(false)}
+          onSaved={() => { setEditOpen(false); load(); }}
+        />
+      )}
     </div>
   );
 }
