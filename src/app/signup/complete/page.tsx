@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { BossLogo } from '@/components/BossLogo';
 import { createClient } from '@/lib/supabase/client';
 import { validatePassword } from '@/lib/passwordPolicy';
+import { api, ApiError } from '@/lib/api';
 import styles from '../../login/login.module.css';
 
 const inputStyle: React.CSSProperties = {
@@ -36,6 +37,9 @@ const labelStyle: React.CSSProperties = {
  */
 export default function SignupCompletePage() {
   const router = useRouter();
+  const [firstName, setFirstName] = useState('');
+  const [middleName, setMiddleName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [pending, setPending] = useState(false);
@@ -44,6 +48,11 @@ export default function SignupCompletePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!firstName.trim() || !lastName.trim()) {
+      setError('First and last name are required.');
+      return;
+    }
 
     const validationError = validatePassword(password);
     if (validationError) {
@@ -64,6 +73,20 @@ export default function SignupCompletePage() {
       setPending(false);
       return;
     }
+
+    const displayName = [firstName.trim(), middleName.trim(), lastName.trim()]
+      .filter(Boolean)
+      .join(' ');
+    try {
+      await api.patch('profile', '/profiles/me', { displayName });
+    } catch (err) {
+      // Password is already set at this point — don't block getting into the
+      // account over a profile-field save failure; they can fix it later.
+      if (err instanceof ApiError) {
+        console.error('Could not save name:', err.message);
+      }
+    }
+
     router.push('/dashboard');
   }
 
@@ -74,12 +97,45 @@ export default function SignupCompletePage() {
           <BossLogo height={48} wordSize="2.2rem" idSuffix="signup-complete" />
         </Link>
 
-        <h1 className={styles.title}>Choose a password</h1>
+        <h1 className={styles.title}>Finish creating your account</h1>
         <p className={styles.sub}>
-          Your email is verified. Set a password to finish creating your account.
+          Your email is verified. Tell us your name and set a password to finish.
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '.7rem', textAlign: 'left' }}>
+          <div>
+            <label style={labelStyle} htmlFor="first-name">First name</label>
+            <input
+              id="first-name"
+              type="text"
+              required
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={labelStyle} htmlFor="middle-name">Middle name (optional)</label>
+            <input
+              id="middle-name"
+              type="text"
+              value={middleName}
+              onChange={(e) => setMiddleName(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={labelStyle} htmlFor="last-name">Last name</label>
+            <input
+              id="last-name"
+              type="text"
+              required
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
           <div>
             <label style={labelStyle} htmlFor="new-password">Password</label>
             <input

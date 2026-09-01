@@ -380,3 +380,52 @@ export interface SubmitSalaryRequest {
   rsuVestingSchedule?: 'YEARLY' | 'FOUR_YEAR' | 'FIVE_YEAR' | 'TEN_YEAR';
   annualBonusAmount?: number;
 }
+
+// ── Admin / moderation ───────────────────────────────────────────────────
+
+export interface MeResponse {
+  userId: string;
+  email: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  platformRole: 'CANDIDATE' | 'ENTERPRISE' | 'ADMIN' | 'SUPERADMIN';
+  subscriptionTier: 'FREE' | 'CANDIDATE_PREMIUM' | 'EMPLOYER_PRO' | 'ENTERPRISE';
+  isPremium: boolean;
+}
+
+export interface ModerationQueueSummary {
+  pendingCompanyRatings: number;
+  pendingManagerRatings: number;
+  pendingGroupRatings: number;
+  pendingManagerIdentities: number;
+}
+
+export interface PendingReviewItem {
+  id: string;
+  entityType: string;
+  title: string;
+  preview: string | null;
+  overallScore: number | null;
+  submittedAt: string;
+}
+
+export interface ModerationDecisionRequest {
+  action: 'APPROVED' | 'REJECTED' | 'FLAGGED';
+  reason?: string;
+}
+
+export interface AuditEntry {
+  id: string;
+  action: string;
+  adminUserId: string;
+  reason: string | null;
+  previousStatus: string;
+  newStatus: string;
+  createdAt: string;
+}
+
+export interface AuditHistory {
+  entityType: string;
+  entityId: string;
+  entries: AuditEntry[];
+}

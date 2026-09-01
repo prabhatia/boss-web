@@ -179,6 +179,14 @@ export function EditProfileModal({
             </div>
           </div>
 
+          {/* ── User ID (email) — display only ── */}
+          <div>
+            <label style={labelStyle}>User ID</label>
+            <div style={{ fontSize: '.85rem', color: 'var(--ink)', padding: '.6rem 0' }}>
+              {profile?.email ?? '—'}
+            </div>
+          </div>
+
           {/* ── Prefix ── */}
           <div>
             <label style={labelStyle} htmlFor="edit-prefix">Prefix</label>
