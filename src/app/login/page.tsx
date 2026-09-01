@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { BossLogo } from '@/components/BossLogo';
 import { OAuthButtons } from '@/components/OAuthButtons';
+import { EmailAuthForm } from '@/components/EmailAuthForm';
 import styles from './login.module.css';
 
 export const metadata = { title: 'Sign in — boss' };
@@ -28,6 +29,19 @@ export default function LoginPage({
         <Suspense fallback={<div className={styles.skeleton} />}>
           <OAuthButtons next={next} />
         </Suspense>
+
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', gap: '.75rem',
+            margin: '1.1rem 0 0', fontSize: '.75rem', color: 'var(--muted)',
+          }}
+        >
+          <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          or
+          <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+        </div>
+
+        <EmailAuthForm next={next} />
 
         <p className={styles.legal}>
           By continuing you agree to our{' '}
