@@ -175,6 +175,7 @@ export interface ProfileResponse {
   createdAt: string;
   gender: 'MALE' | 'FEMALE' | 'DECLINE_TO_IDENTIFY' | null;
   prefix: string | null;
+  hasPassword: boolean;
 }
 
 export interface SuggestedConnection {

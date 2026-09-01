@@ -11,17 +11,23 @@ export function RateManagerForm({
   companyId,
   managerId,
   employmentHistoryId,
+  initialRoleTitle,
   onRated,
 }: {
   companyId: string;
   managerId: string;
   employmentHistoryId: string;
+  /** Pre-fills the Role Name field from the position picked earlier in the flow. */
+  initialRoleTitle?: string;
   onRated?: () => void;
 }) {
   const [state, setState] = useState<State>('ready');
   const [values, setValues] = useState<MetricValues>(() => defaultMetricValues('manager'));
   const [wouldScore, setWouldScore] = useState(DEFAULT_WOULD_SCORE);
-  const [extra, setExtra] = useState<RatingExtraFields>(EMPTY_EXTRA_FIELDS);
+  const [extra, setExtra] = useState<RatingExtraFields>(() => ({
+    ...EMPTY_EXTRA_FIELDS,
+    roleTitle: initialRoleTitle ?? '',
+  }));
   const [error, setError] = useState<string | null>(null);
 
   function updateMetric(key: MetricKey, patch: Partial<MetricValue>) {
