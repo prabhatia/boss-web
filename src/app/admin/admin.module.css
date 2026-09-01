@@ -1,0 +1,63 @@
+.wrap { min-height: 100vh; background: var(--bg); }
+
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.5rem; background: white; border-bottom: 1px solid var(--border);
+}
+.logo { display: inline-flex; text-decoration: none; }
+.backLink { font-size: .85rem; color: var(--muted); text-decoration: none; font-weight: 600; }
+.backLink:hover { color: var(--primary); }
+
+.container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.title { font-size: 1.4rem; font-weight: 800; color: var(--ink); margin: 0 0 1.25rem; }
+
+.summaryRow {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: .75rem;
+  margin-bottom: 1.5rem;
+}
+.summaryCard {
+  background: white; border: 1px solid var(--border); border-radius: 12px;
+  padding: 1rem; text-align: center;
+}
+.summaryValue { font-size: 1.6rem; font-weight: 800; color: var(--primary); }
+.summaryLabel { font-size: .75rem; color: var(--muted); margin-top: .2rem; }
+
+.tabs {
+  display: flex; gap: .4rem; margin-bottom: 1.25rem; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border); padding-bottom: .75rem;
+}
+.tab, .tabActive {
+  padding: .5rem 1rem; border-radius: 999px; border: none; cursor: pointer;
+  font-size: .82rem; font-weight: 600; font-family: inherit;
+}
+.tab { background: white; color: var(--muted); border: 1px solid var(--border); }
+.tabActive { background: var(--primary); color: white; }
+
+.muted { font-size: .85rem; color: var(--muted); }
+.error { font-size: .85rem; color: var(--red); margin-bottom: 1rem; }
+
+.list { display: grid; gap: .9rem; }
+.item {
+  background: white; border: 1px solid var(--border); border-radius: 12px;
+  padding: 1rem 1.15rem;
+}
+.itemHead { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; }
+.itemTitle { font-size: .95rem; font-weight: 700; color: var(--ink); }
+.itemMeta { font-size: .75rem; color: var(--muted); margin-top: .15rem; }
+.itemPreview {
+  font-size: .85rem; color: var(--body); margin: .6rem 0 0; line-height: 1.5;
+}
+
+.reasonInput {
+  width: 100%; margin-top: .75rem; padding: .5rem .7rem;
+  border: 1px solid var(--border); border-radius: 8px;
+  font-size: .82rem; font-family: inherit; box-sizing: border-box;
+}
+
+.actions { display: flex; gap: .5rem; margin-top: .75rem; flex-wrap: wrap; }
+
+.audit {
+  margin-top: .85rem; padding-top: .75rem; border-top: 1px solid var(--border);
+  display: grid; gap: .5rem;
+}
+.auditEntry { font-size: .8rem; color: var(--body); }
