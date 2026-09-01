@@ -94,22 +94,29 @@ export function AdminUserRoleManager() {
         <div style={{ marginTop: '.85rem', display: 'flex', alignItems: 'center', gap: '.75rem', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '.85rem', color: 'var(--ink)' }}>
             {found.displayName ? `${found.displayName} — ` : ''}{found.email}
+            <span style={{ color: 'var(--muted)' }}> ({found.platformRole})</span>
           </span>
           <button
             className="btn btn-primary"
-            disabled={acting !== null}
+            disabled={acting !== null || found.platformRole === 'ADMIN' || found.platformRole === 'SUPERADMIN'}
             onClick={() => setRole('ADMIN')}
           >
             {acting === 'grant' ? 'Granting…' : 'Grant ADMIN'}
           </button>
           <button
             className="btn btn-outline"
-            disabled={acting !== null}
+            disabled={acting !== null || found.platformRole !== 'ADMIN'}
             onClick={() => setRole('CANDIDATE')}
           >
             {acting === 'remove' ? 'Removing…' : 'Remove ADMIN'}
           </button>
         </div>
+      )}
+
+      {found?.platformRole === 'SUPERADMIN' && (
+        <p className={styles.muted} style={{ marginTop: '.4rem' }}>
+          This user is a SUPERADMIN — that role can only be changed manually in Supabase.
+        </p>
       )}
 
       {message && <p style={{ fontSize: '.82rem', color: 'var(--green)', marginTop: '.6rem' }}>{message}</p>}
