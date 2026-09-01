@@ -1,7 +1,7 @@
 'use client';
 
 /** Small "i" button with a CSS-only hover/focus tooltip bubble — no JS state, no component library. */
-export function InfoTooltip({ text }: { text: string }) {
+export function InfoTooltip({ text }: { text: React.ReactNode }) {
   return (
     <span style={wrap} tabIndex={0} className="info-tooltip">
       <span style={badge} aria-hidden="true">i</span>
@@ -49,4 +49,5 @@ const bubble: React.CSSProperties = {
   borderRadius: 6,
   zIndex: 20,
   whiteSpace: 'pre-line',
+  textAlign: 'left',
 };
