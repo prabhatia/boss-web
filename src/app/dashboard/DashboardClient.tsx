@@ -29,6 +29,7 @@ interface InitialUser {
   displayName: string | null;
   avatarUrl: string | null;
   providers: string[];
+  platformRole: string | null;
 }
 
 export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
@@ -95,6 +96,9 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
           <SideLink href="/companies" icon="🏢" label="Companies" />
           <SideLink href="/people" icon="🧑‍💼" label="People" />
           <SideLink href="/jobs" icon="💼" label="Jobs" />
+          {(initialUser.platformRole === 'ADMIN' || initialUser.platformRole === 'SUPERADMIN') && (
+            <SideLink href="/admin" icon="🛡️" label="Admin" />
+          )}
           <SideLink href="/faq" icon="?" label="Help" />
         </nav>
         <button onClick={signOut} className={styles.signOut} title="Sign out">⏻</button>

@@ -17,5 +17,5 @@ export default async function AdminPage() {
   const role = (data.user.app_metadata as { platform_role?: string })?.platform_role;
   if (!role || !ADMIN_ROLES.has(role)) redirect('/dashboard');
 
-  return <AdminModerationClient />;
+  return <AdminModerationClient isSuperAdmin={role === 'SUPERADMIN'} />;
 }

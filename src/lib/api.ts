@@ -429,3 +429,9 @@ export interface AuditHistory {
   entityId: string;
   entries: AuditEntry[];
 }
+
+export interface AdminUserLookupResponse {
+  userId: string;
+  email: string;
+  displayName: string | null;
+}
