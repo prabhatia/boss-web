@@ -434,4 +434,5 @@ export interface AdminUserLookupResponse {
   userId: string;
   email: string;
   displayName: string | null;
+  platformRole: 'CANDIDATE' | 'ENTERPRISE' | 'ADMIN' | 'SUPERADMIN';
 }
