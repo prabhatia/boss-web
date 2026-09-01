@@ -7,6 +7,7 @@ import {
   api, ApiError,
   type ModerationQueueSummary, type PendingReviewItem, type AuditHistory,
 } from '@/lib/api';
+import { AdminUserRoleManager } from './AdminUserRoleManager';
 import styles from './admin.module.css';
 
 type Tab = 'company' | 'manager' | 'manager-identity' | 'salary';
@@ -21,7 +22,7 @@ const TAB_ORDER: Tab[] = ['company', 'manager', 'manager-identity', 'salary'];
 
 interface Page<T> { content: T[]; totalElements: number; }
 
-export function AdminModerationClient() {
+export function AdminModerationClient({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   const [summary, setSummary] = useState<ModerationQueueSummary | null>(null);
   const [tab, setTab] = useState<Tab>('company');
   const [items, setItems] = useState<PendingReviewItem[]>([]);
@@ -98,6 +99,8 @@ export function AdminModerationClient() {
 
       <div className={styles.container}>
         <h1 className={styles.title}>Moderation</h1>
+
+        {isSuperAdmin && <AdminUserRoleManager />}
 
         {summary && (
           <div className={styles.summaryRow}>
