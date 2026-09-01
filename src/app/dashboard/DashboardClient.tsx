@@ -163,7 +163,7 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
                 <span className={styles.tokensLabel}>🪙 {profile?.tokens ?? 0} tokens</span>
                 <InfoTooltip
                   text={
-                    'Earn 10 tokens each time you rate a company, rate a manager, or enter salary data for a position. Earn 5 tokens per valid email address when you invite a friend.'
+                    'Earn 10 tokens each time you rate a company, rate a manager, enter salary data, or import your resume. Earn 5 tokens for your first LinkedIn sync, or per valid email when you invite a friend.\n\nUse tokens for AI-aided job applications and to initiate connections.'
                   }
                 />
               </div>
