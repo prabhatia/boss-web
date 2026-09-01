@@ -82,18 +82,6 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
 
   const completion = computeCompletion(profile);
   const companySlugs = useCompanySlugs(profile?.employmentHistory);
-  const ratableCompanies = (profile?.employmentHistory ?? [])
-    .filter((e) => e.companyName)
-    .reduce<{ id: string; name: string }[]>((acc, e) => {
-      if (!acc.some((c) => c.id === e.companyId)) acc.push({ id: e.companyId, name: e.companyName! });
-      return acc;
-    }, []);
-  const ratableManagers = (profile?.employmentHistory ?? [])
-    .filter((e) => e.managerId && e.companyName)
-    .reduce<{ companyId: string; companyName: string }[]>((acc, e) => {
-      if (!acc.some((c) => c.companyId === e.companyId)) acc.push({ companyId: e.companyId, companyName: e.companyName! });
-      return acc;
-    }, []);
 
   return (
     <div className={styles.shell}>
@@ -313,7 +301,17 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
                         <span className={styles.expRole}>{e.roleTitle}</span>
                         {e.isCurrent && <span className={styles.tag}>Current</span>}
                       </div>
-                      <div className={styles.expCompany}>{e.companyName}</div>
+                      <div className={styles.expCompany}>
+                        {e.companyName}
+                        {e.companyName && (
+                          <Link
+                            href={companySlugs[e.companyId] ? `/companies/${companySlugs[e.companyId]}` : '/companies'}
+                            style={{ marginLeft: '.5rem', fontSize: '.76rem', fontWeight: 600, color: 'var(--primary)' }}
+                          >
+                            Rate company/manager
+                          </Link>
+                        )}
+                      </div>
                       <div className={styles.expMeta}>
                         {formatMonthYear(e.startDate)} – {e.isCurrent ? 'Present' : formatMonthYear(e.endDate)}
                         {e.location && ` · ${e.location}`}
@@ -345,21 +343,7 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
                 icon="🔗"
                 title="No suggestions yet"
                 body="Rate 3 or more employers and we will start matching you with professionals who value the same things."
-              >
-                {ratableManagers.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem', marginTop: '.75rem' }}>
-                    {ratableManagers.map((m) => (
-                      <Link
-                        key={m.companyId}
-                        href={companySlugs[m.companyId] ? `/companies/${companySlugs[m.companyId]}` : '/companies'}
-                        style={{ fontSize: '.8rem', fontWeight: 600, color: 'var(--primary)' }}
-                      >
-                        Rate your manager at {m.companyName} →
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </EmptyState>
+              />
             ) : (
               <div className={styles.connCards}>
                 {connections.map((c) => (
@@ -397,21 +381,7 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
                 icon="💼"
                 title="No matches yet"
                 body="Your AI job recommendations activate after you rate 3 employers. That is how we learn what culture and management style you actually thrive in."
-              >
-                {ratableCompanies.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem', marginTop: '.75rem' }}>
-                    {ratableCompanies.map((c) => (
-                      <Link
-                        key={c.id}
-                        href={companySlugs[c.id] ? `/companies/${companySlugs[c.id]}` : '/companies'}
-                        style={{ fontSize: '.8rem', fontWeight: 600, color: 'var(--primary)' }}
-                      >
-                        Rate {c.name} →
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </EmptyState>
+              />
             ) : (
               <div className={styles.jobCards}>
                 {jobs.map((j) => (
@@ -558,15 +528,12 @@ function SkeletonRows({ n }: { n: number }) {
   );
 }
 
-function EmptyState({
-  icon, title, body, children,
-}: { icon: string; title: string; body: string; children?: React.ReactNode }) {
+function EmptyState({ icon, title, body }: { icon: string; title: string; body: string }) {
   return (
     <div className={styles.empty}>
       <div className={styles.emptyIcon}>{icon}</div>
       <div className={styles.emptyTitle}>{title}</div>
       <p className={styles.emptyBody}>{body}</p>
-      {children}
     </div>
   );
 }

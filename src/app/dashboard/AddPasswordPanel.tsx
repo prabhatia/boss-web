@@ -58,7 +58,7 @@ export function AddPasswordPanel({
   if (saved) {
     return (
       <p style={{ fontSize: '.8rem', fontWeight: 700, color: 'var(--amber)' }}>
-        Username and password saved.
+        {emailChanged ? 'Username and password saved.' : 'Password saved.'}
         {emailChanged && ' Check your inbox to confirm your new email address.'}
       </p>
     );
