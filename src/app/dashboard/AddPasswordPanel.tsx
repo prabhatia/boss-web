@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { validatePassword } from '@/lib/passwordPolicy';
+import { api } from '@/lib/api';
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -25,20 +26,43 @@ const labelStyle: React.CSSProperties = {
 };
 
 /**
- * Shown when the signed-in user has no 'email' identity yet (Google/LinkedIn
- * only) — lets them add a password so they can also sign in with email
- * later. If they change the pre-filled email, Supabase sends a confirmation
- * link to the new address and only applies the change once it's clicked;
- * leaving it unchanged is a no-op on the email side.
+ * Shown when the signed-in user has no password set yet (Google/LinkedIn
+ * only) — lets them add one so they can also sign in with email later. If
+ * they change the pre-filled email, Supabase sends a confirmation link to
+ * the new address and only applies the change once it's clicked; leaving
+ * it unchanged is a no-op on the email side. Either way the password takes
+ * effect immediately.
  */
-export function AddPasswordPanel({ email, onDone }: { email: string; onDone: () => void }) {
+export function AddPasswordPanel({
+  email,
+  hasPassword,
+  onDone,
+}: {
+  email: string;
+  hasPassword: boolean;
+  onDone: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [emailValue, setEmailValue] = useState(email);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
   const [emailChanged, setEmailChanged] = useState(false);
+
+  if (hasPassword && !saved) {
+    return null;
+  }
+
+  if (saved) {
+    return (
+      <p style={{ fontSize: '.8rem', fontWeight: 700, color: 'var(--amber)' }}>
+        {emailChanged ? 'Username and password saved.' : 'Password saved.'}
+        {emailChanged && ' Check your inbox to confirm your new email address.'}
+      </p>
+    );
+  }
 
   if (!open) {
     return (
@@ -50,7 +74,7 @@ export function AddPasswordPanel({ email, onDone }: { email: string; onDone: () 
           fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: 0,
         }}
       >
-        + Add a password
+        + Set Password
       </button>
     );
   }
@@ -83,22 +107,15 @@ export function AddPasswordPanel({ email, onDone }: { email: string; onDone: () 
       return;
     }
 
-    if (changed) {
-      setEmailChanged(true);
-      setPending(false);
-      return;
-    }
+    // Best-effort — the password is set on the Supabase side regardless of
+    // whether this call succeeds; it just controls when we stop offering
+    // "Set Password" again.
+    api.post('profile', '/profiles/me/password-set').catch(() => {});
 
+    setEmailChanged(changed);
+    setSaved(true);
     setPending(false);
     onDone();
-  }
-
-  if (emailChanged) {
-    return (
-      <p style={{ fontSize: '.8rem', color: 'var(--muted)' }}>
-        Password saved. Check <strong>{emailValue}</strong> to confirm your new email address.
-      </p>
-    );
   }
 
   return (
@@ -115,7 +132,7 @@ export function AddPasswordPanel({ email, onDone }: { email: string; onDone: () 
         />
       </div>
       <div>
-        <label style={labelStyle} htmlFor="add-pw-password">Password</label>
+        <label style={labelStyle} htmlFor="add-pw-password">Enter Password</label>
         <input
           id="add-pw-password"
           type="password"
@@ -126,7 +143,7 @@ export function AddPasswordPanel({ email, onDone }: { email: string; onDone: () 
         />
       </div>
       <div>
-        <label style={labelStyle} htmlFor="add-pw-confirm">Confirm password</label>
+        <label style={labelStyle} htmlFor="add-pw-confirm">Confirm Password</label>
         <input
           id="add-pw-confirm"
           type="password"

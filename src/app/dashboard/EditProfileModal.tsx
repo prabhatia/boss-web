@@ -98,6 +98,7 @@ export function EditProfileModal({
           setSaving(false);
           return;
         }
+        api.post('profile', '/profiles/me/password-set').catch(() => {});
       }
 
       await api.patch('profile', '/profiles/me', {

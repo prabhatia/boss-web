@@ -55,6 +55,7 @@ export function ManagerRatingFlow({ companyId }: { companyId: string }) {
           companyId={companyId}
           managerId={manager.id}
           employmentHistoryId={linkedPosition.id}
+          initialRoleTitle={linkedPosition.roleTitle}
           onRated={() => setStep('done')}
         />
       </div>

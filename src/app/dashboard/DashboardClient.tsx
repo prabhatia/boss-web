@@ -10,6 +10,7 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 import { InviteFriend } from './InviteFriend';
 import { AddPasswordPanel } from './AddPasswordPanel';
 import { EditProfileModal } from './EditProfileModal';
+import { useCompanySlugs } from './useCompanySlugs';
 import { createClient } from '@/lib/supabase/client';
 import {
   api,
@@ -80,6 +81,7 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
     .toUpperCase() || 'B';
 
   const completion = computeCompletion(profile);
+  const companySlugs = useCompanySlugs(profile?.employmentHistory);
 
   return (
     <div className={styles.shell}>
@@ -217,14 +219,16 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
                       </span>
                     ))}
                   </div>
-                  {!initialUser.providers.includes('email') && (
-                    <div style={{ marginTop: '.6rem' }}>
-                      <AddPasswordPanel
-                        email={initialUser.email}
-                        onDone={() => { router.refresh(); load(); }}
-                      />
-                    </div>
-                  )}
+                </div>
+              )}
+
+              {profile && (
+                <div style={{ marginTop: '.6rem' }}>
+                  <AddPasswordPanel
+                    email={initialUser.email}
+                    hasPassword={profile.hasPassword}
+                    onDone={() => { router.refresh(); load(); }}
+                  />
                 </div>
               )}
 
@@ -297,7 +301,17 @@ export function DashboardClient({ initialUser }: { initialUser: InitialUser }) {
                         <span className={styles.expRole}>{e.roleTitle}</span>
                         {e.isCurrent && <span className={styles.tag}>Current</span>}
                       </div>
-                      <div className={styles.expCompany}>{e.companyName}</div>
+                      <div className={styles.expCompany}>
+                        {e.companyName}
+                        {e.companyName && (
+                          <Link
+                            href={companySlugs[e.companyId] ? `/companies/${companySlugs[e.companyId]}` : '/companies'}
+                            style={{ marginLeft: '.5rem', fontSize: '.76rem', fontWeight: 600, color: 'var(--primary)' }}
+                          >
+                            Rate company/manager
+                          </Link>
+                        )}
+                      </div>
                       <div className={styles.expMeta}>
                         {formatMonthYear(e.startDate)} – {e.isCurrent ? 'Present' : formatMonthYear(e.endDate)}
                         {e.location && ` · ${e.location}`}
