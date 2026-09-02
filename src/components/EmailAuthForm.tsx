@@ -89,33 +89,6 @@ export function EmailAuthForm({ next = '/dashboard' }: { next?: string }) {
 
   return (
     <div style={{ marginTop: '.75rem' }}>
-      <div style={{ display: 'flex', gap: '.4rem', marginBottom: '.9rem', fontSize: '.82rem' }}>
-        <button
-          type="button"
-          onClick={() => { setMode('signin'); setError(null); }}
-          style={{
-            flex: 1, padding: '.4rem', borderRadius: 8, border: 'none', cursor: 'pointer',
-            fontWeight: 600, fontFamily: 'inherit',
-            background: mode === 'signin' ? 'var(--bg)' : 'transparent',
-            color: mode === 'signin' ? 'var(--primary)' : 'var(--muted)',
-          }}
-        >
-          Sign in
-        </button>
-        <button
-          type="button"
-          onClick={() => { setMode('signup'); setError(null); }}
-          style={{
-            flex: 1, padding: '.4rem', borderRadius: 8, border: 'none', cursor: 'pointer',
-            fontWeight: 600, fontFamily: 'inherit',
-            background: mode === 'signup' ? 'var(--bg)' : 'transparent',
-            color: mode === 'signup' ? 'var(--primary)' : 'var(--muted)',
-          }}
-        >
-          Sign up
-        </button>
-      </div>
-
       <form onSubmit={mode === 'signin' ? handleSignIn : handleSignUp} style={{ display: 'grid', gap: '.7rem' }}>
         <div>
           <label style={labelStyle} htmlFor="email">Email</label>
@@ -164,6 +137,41 @@ export function EmailAuthForm({ next = '/dashboard' }: { next?: string }) {
           {error}
         </p>
       )}
+
+      <p style={{ marginTop: '.9rem', fontSize: '.84rem', textAlign: 'center', color: 'var(--muted)' }}>
+        {mode === 'signin' ? (
+          <button
+            type="button"
+            onClick={() => { setMode('signup'); setError(null); }}
+            style={linkButtonStyle}
+          >
+            I do not have a boss account
+          </button>
+        ) : (
+          <>
+            Already have a boss account?{' '}
+            <button
+              type="button"
+              onClick={() => { setMode('signin'); setError(null); }}
+              style={linkButtonStyle}
+            >
+              Sign in
+            </button>
+          </>
+        )}
+      </p>
     </div>
   );
 }
+
+const linkButtonStyle: React.CSSProperties = {
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  color: 'var(--primary)',
+  fontWeight: 600,
+  fontSize: 'inherit',
+  fontFamily: 'inherit',
+  cursor: 'pointer',
+  textDecoration: 'none',
+};
