@@ -12,18 +12,25 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        getAll() {
+          return request.cookies.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options });
+        // Batches every cookie from a single Supabase call (e.g. a token
+        // refresh writes access + refresh together, sometimes chunked into
+        // several cookies) onto ONE response object. The old get/set/remove
+        // API rebuilt `response` on every individual cookie write, which
+        // silently dropped all but the last cookie whenever more than one
+        // needed to be set in the same request — the more claims a session
+        // carries (OIDC providers like Google/LinkedIn especially), the more
+        // likely that was to happen, corrupting the session intermittently.
+        setAll(
+          cookiesToSet: { name: string; value: string; options: CookieOptions }[]
+        ) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request: { headers: request.headers } });
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options });
-          response = NextResponse.next({ request: { headers: request.headers } });
-          response.cookies.set({ name, value: '', ...options });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
         },
       },
     }
