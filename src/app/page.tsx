@@ -232,6 +232,7 @@ export default async function LandingPage() {
               <Link href="/login" className="btn btn-outline btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
                 Get started free
               </Link>
+              <div className={styles.planCtaFooter} />
             </article>
 
             <article className={`${styles.pricingCard} ${styles.popular}`}>
@@ -251,6 +252,7 @@ export default async function LandingPage() {
               <Link href="/login" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
                 Start free trial
               </Link>
+              <div className={styles.planCtaFooter} />
             </article>
 
             <article className={styles.pricingCard}>
@@ -265,9 +267,11 @@ export default async function LandingPage() {
               <Link href="/login" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
                 Start free trial
               </Link>
-              <Link href="/login" className={styles.planAnnual}>
-                Pay annually — $500/yr <span className={styles.planSave}>Save $100</span>
-              </Link>
+              <div className={styles.planCtaFooter}>
+                <Link href="/login" className={styles.planAnnual}>
+                  Pay annually — $500/yr <span className={styles.planSave}>Save $100</span>
+                </Link>
+              </div>
             </article>
 
             <article className={styles.pricingCard}>
@@ -284,6 +288,7 @@ export default async function LandingPage() {
               <Link href="/login" className="btn btn-outline btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
                 Talk to sales
               </Link>
+              <div className={styles.planCtaFooter} />
             </article>
           </div>
         </div>
