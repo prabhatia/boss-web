@@ -155,8 +155,8 @@
 
 /* ── PRICING ── */
 .pricingGrid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem; margin-top: 3rem;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem; margin-top: 3rem;
 }
 .pricingCard {
   background: white; border: 2px solid var(--border); border-radius: 16px;
@@ -189,9 +189,13 @@
 .planFeatures li { font-size: .875rem; display: flex; gap: .5rem; align-items: flex-start; }
 .planFeatures li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
 
+.planCtaFooter {
+  min-height: 2.4rem; margin-top: .75rem;
+  display: flex; align-items: center; justify-content: center;
+}
 .planAnnual {
   display: flex; align-items: center; justify-content: center; gap: .4rem;
-  margin-top: .75rem; font-size: .82rem; font-weight: 600;
+  font-size: .82rem; font-weight: 600;
   color: var(--blue); text-decoration: none;
 }
 .planAnnual:hover { text-decoration: underline; }
@@ -211,6 +215,12 @@
 }
 .ctaSection p { font-size: 1.05rem; color: rgba(255,255,255,.8); margin-bottom: 2rem; }
 
+@media (max-width: 900px) {
+  .pricingGrid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .pricingGrid { grid-template-columns: 1fr; }
+}
 @media (max-width: 768px) {
   .hero { padding: 3rem 1.25rem 4rem; }
   .hero::before { width: 100%; height: 350px; }
