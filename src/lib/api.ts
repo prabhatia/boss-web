@@ -525,3 +525,25 @@ export interface AdminUserLookupResponse {
   displayName: string | null;
   platformRole: 'CANDIDATE' | 'ENTERPRISE' | 'ADMIN' | 'SUPERADMIN';
 }
+
+/** One manager rating row in the /admin "View All Ratings" browser — mirrors ModerationDto.AdminManagerRatingItem. */
+export interface AdminManagerRatingItem {
+  id: string;
+  managerId: string;
+  managerDisplayLabel: string;
+  letter: string;
+  companyId: string;
+  companyName: string;
+  companySlug: string;
+  companyIndustry: string;
+  roleTitle: string | null;
+  workLifeBalanceScore: number;
+  managementEmpathyScore: number;
+  advancementOpportunityScore: number;
+  wouldWorkAgainScore: number;
+  overallReviewText: string | null;
+  moderationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'FLAGGED';
+  createdAt: string;
+  moderatedBy: string | null;
+  moderatedAt: string | null;
+}
