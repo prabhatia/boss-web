@@ -420,7 +420,9 @@ export interface ManagerDirectoryItem {
 }
 
 export interface CreateManagerRequest {
-  realName: string;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
   linkedinUrl?: string;
 }
 
