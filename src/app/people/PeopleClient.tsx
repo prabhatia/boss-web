@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api, type PersonSearchResult } from '@/lib/api';
+import { IndustryBrowser } from './IndustryBrowser';
 import styles from './people.module.css';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').concat('#');
+const ANY_INDUSTRY = 'Any';
 
 export function PeopleClient() {
   const [people, setPeople] = useState<PersonSearchResult[]>([]);
@@ -15,6 +17,10 @@ export function PeopleClient() {
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState<string | null>(null);
+  const [companyFilter, setCompanyFilter] = useState('');
+
+  const [industries, setIndustries] = useState<string[]>([]);
+  const [industry, setIndustry] = useState(ANY_INDUSTRY);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,9 +39,26 @@ export function PeopleClient() {
     return () => { cancelled = true; };
   }, [retryToken]);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const list = await api.get<string[]>('company', '/companies/industries');
+        setIndustries(list);
+      } catch {
+        // Industry filter just won't have options — the rest of the page still works.
+      }
+    })();
+  }, []);
+
+  const companyOptions = useMemo(
+    () => Array.from(new Set(people.map((p) => p.companyName))).sort((a, b) => a.localeCompare(b)),
+    [people]
+  );
+
   function selectLetter(letter: string) {
     setSelectedLetter(letter);
     setSearchTerm(null);
+    setCompanyFilter('');
   }
 
   function runSearch(e: React.FormEvent) {
@@ -44,11 +67,18 @@ export function PeopleClient() {
     if (!q) return;
     setSearchTerm(q);
     setSelectedLetter(null);
+    setCompanyFilter('');
   }
 
   function clearSearch() {
     setSearchTerm(null);
     setSearchInput('');
+  }
+
+  function selectCompany(name: string) {
+    setCompanyFilter(name);
+    setSelectedLetter(null);
+    setSearchTerm(null);
   }
 
   const peopleForLetter = selectedLetter ? people.filter((p) => p.letter === selectedLetter) : [];
@@ -57,8 +87,9 @@ export function PeopleClient() {
   const searchMatches = searchTerm
     ? people.filter((p) => p.displayLabel.toLowerCase().includes(searchTerm.toLowerCase()))
     : [];
+  const companyMatches = companyFilter ? people.filter((p) => p.companyName === companyFilter) : [];
 
-  const results = searchTerm ? searchMatches : peopleForLetter;
+  const results = searchTerm ? searchMatches : companyFilter ? companyMatches : peopleForLetter;
 
   return (
     <main className={styles.page}>
@@ -75,58 +106,100 @@ export function PeopleClient() {
       <div style={{ padding: '0 2rem' }}>
         <div className="container" style={{ padding: '2.5rem 0 4rem' }}>
           <div className={styles.card}>
-            <form onSubmit={runSearch} style={searchRow}>
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search by first or last name…"
-                style={searchInputStyle}
-                aria-label="Search people"
-              />
-              <button type="submit" className="btn btn-outline" style={searchBtn}>
-                Search
-              </button>
-            </form>
-
-            <p style={letterLabel}>Last name starts with:</p>
-            <div style={letterRow}>
-              {LETTERS.map((letter) => (
-                <button
-                  key={letter}
-                  onClick={() => selectLetter(letter)}
-                  style={selectedLetter === letter ? { ...letterBtn, ...letterBtnActive } : letterBtn}
-                >
-                  {letter}
+            <div style={filtersRow}>
+              <form onSubmit={runSearch} style={{ ...searchRow, flex: 1, marginBottom: 0 }}>
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Search by first or last name…"
+                  style={searchInputStyle}
+                  aria-label="Search people"
+                />
+                <button type="submit" className="btn btn-outline" style={searchBtn}>
+                  Search
                 </button>
-              ))}
+              </form>
+
+              <select
+                value={companyFilter}
+                onChange={(e) => (e.target.value ? selectCompany(e.target.value) : setCompanyFilter(''))}
+                style={selectStyle}
+                aria-label="Select by company name"
+              >
+                <option value="">All companies</option>
+                {companyOptions.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+
+              <select
+                value={industry}
+                onChange={(e) => setIndustry(e.target.value)}
+                style={selectStyle}
+                aria-label="Filter by industry"
+              >
+                <option value={ANY_INDUSTRY}>Any industry</option>
+                {industries.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
             </div>
 
-            {loading ? (
-              <p style={muted}>Loading people…</p>
-            ) : error ? (
-              <div>
-                <p style={{ fontSize: '.85rem', color: 'var(--red)' }}>Could not load the people directory. Please try again.</p>
-                <button className="btn btn-outline" onClick={() => setRetryToken((n) => n + 1)} style={{ marginTop: '.5rem' }}>
-                  Retry
-                </button>
-              </div>
-            ) : searchTerm ? (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.75rem' }}>
-                  <p style={{ ...muted, margin: 0 }}>
-                    {results.length > 0 ? `Results for “${searchTerm}”` : `No one named “${searchTerm}” found.`}
-                  </p>
-                  <button onClick={clearSearch} style={clearLink}>Clear search</button>
-                </div>
-                <PeopleList results={results} />
-              </>
-            ) : !selectedLetter ? (
-              <p style={muted}>Pick a letter to browse people, or search by name above.</p>
-            ) : results.length > 0 ? (
-              <PeopleList results={results} />
+            {industry !== ANY_INDUSTRY ? (
+              <IndustryBrowser industry={industry} />
             ) : (
-              <p style={muted}>No one under &ldquo;{selectedLetter}&rdquo; yet.</p>
+              <>
+                <p style={letterLabel}>Last name starts with:</p>
+                <div style={letterRow}>
+                  {LETTERS.map((letter) => (
+                    <button
+                      key={letter}
+                      onClick={() => selectLetter(letter)}
+                      style={selectedLetter === letter ? { ...letterBtn, ...letterBtnActive } : letterBtn}
+                    >
+                      {letter}
+                    </button>
+                  ))}
+                </div>
+
+                {loading ? (
+                  <p style={muted}>Loading people…</p>
+                ) : error ? (
+                  <div>
+                    <p style={{ fontSize: '.85rem', color: 'var(--red)' }}>Could not load the people directory. Please try again.</p>
+                    <button className="btn btn-outline" onClick={() => setRetryToken((n) => n + 1)} style={{ marginTop: '.5rem' }}>
+                      Retry
+                    </button>
+                  </div>
+                ) : searchTerm ? (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.75rem' }}>
+                      <p style={{ ...muted, margin: 0 }}>
+                        {results.length > 0 ? `Results for “${searchTerm}”` : `No one named “${searchTerm}” found.`}
+                      </p>
+                      <button onClick={clearSearch} style={clearLink}>Clear search</button>
+                    </div>
+                    <PeopleList results={results} />
+                  </>
+                ) : companyFilter ? (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.75rem' }}>
+                      <p style={{ ...muted, margin: 0 }}>
+                        {results.length > 0 ? `People at ${companyFilter}` : `No one rated at ${companyFilter} yet.`}
+                      </p>
+                      <button onClick={() => setCompanyFilter('')} style={clearLink}>Clear</button>
+                    </div>
+                    <PeopleList results={results} />
+                  </>
+                ) : !selectedLetter ? (
+                  <p style={muted}>Pick a letter to browse people, search by name, or select a company above.</p>
+                ) : results.length > 0 ? (
+                  <PeopleList results={results} />
+                ) : (
+                  <p style={muted}>No one under &ldquo;{selectedLetter}&rdquo; yet.</p>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -161,6 +234,23 @@ function PeopleList({ results }: { results: PersonSearchResult[] }) {
 }
 
 const muted: React.CSSProperties = { fontSize: '.85rem', color: 'var(--muted)' };
+
+const filtersRow: React.CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '.5rem',
+  marginBottom: '1rem',
+};
+
+const selectStyle: React.CSSProperties = {
+  padding: '.5rem .6rem',
+  border: '1px solid var(--border)',
+  borderRadius: 8,
+  fontSize: '.85rem',
+  fontFamily: 'inherit',
+  color: 'var(--ink)',
+  background: 'white',
+};
 
 const searchRow: React.CSSProperties = {
   display: 'flex',

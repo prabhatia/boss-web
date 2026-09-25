@@ -12,15 +12,13 @@
   font-size: .9rem; font-family: inherit; background: white; color: var(--ink);
 }
 .search:focus { outline: 2px solid var(--primary); outline-offset: 1px; border-color: transparent; }
-.chips { display: flex; gap: .45rem; flex-wrap: wrap; }
-.chip {
-  padding: .35rem .85rem; border-radius: 999px;
+.industrySelect {
+  padding: .6rem .9rem; border-radius: 10px;
   border: 1px solid var(--border); background: white;
-  font-size: .8rem; font-weight: 500; color: var(--body);
-  cursor: pointer; font-family: inherit; transition: all .15s;
+  font-size: .85rem; font-family: inherit; color: var(--ink);
+  max-width: 320px;
 }
-.chip:hover { border-color: var(--primary-ring); }
-.chipActive { background: var(--primary); color: white; border-color: var(--primary); }
+.industrySelect:focus { outline: 2px solid var(--primary); outline-offset: 1px; border-color: transparent; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
 .coCard {
