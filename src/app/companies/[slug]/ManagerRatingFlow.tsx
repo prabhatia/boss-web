@@ -15,9 +15,16 @@ type Step = 'directory' | 'position' | 'rating' | 'done';
  * → rate them (RateManagerForm, the same 1-10 metric widget as the company
  * rating, minus upperManagementEthos).
  */
-export function ManagerRatingFlow({ companyId }: { companyId: string }) {
-  const [step, setStep] = useState<Step>('directory');
-  const [manager, setManager] = useState<ManagerRef | null>(null);
+export function ManagerRatingFlow({
+  companyId,
+  initialManager,
+}: {
+  companyId: string;
+  /** Skips the directory step — e.g. arriving from a specific manager's "Rate this manager" link on /people. */
+  initialManager?: ManagerRef;
+}) {
+  const [step, setStep] = useState<Step>(initialManager ? 'position' : 'directory');
+  const [manager, setManager] = useState<ManagerRef | null>(initialManager ?? null);
   const [linkedPosition, setLinkedPosition] = useState<EmploymentHistoryResponse | null>(null);
 
   function onManagerSelected(ref: ManagerRef) {

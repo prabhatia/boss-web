@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { api, ApiError, type EmploymentHistoryResponse, type SubmitCompanyRatingRequest } from '@/lib/api';
 import { RatingMetricsForm, EMPTY_EXTRA_FIELDS, type RatingExtraFields } from '@/components/ratings/RatingMetricsForm';
 import { defaultMetricValues, DEFAULT_WOULD_SCORE, type MetricKey, type MetricValue, type MetricValues } from '@/components/ratings/metrics';
+import { NewPositionForm } from './NewPositionForm';
 import { SalaryForm } from './SalaryForm';
 
 type State = 'loading' | 'noPosition' | 'ready' | 'submitting' | 'done' | 'error';
@@ -75,11 +75,18 @@ export function RateCompanyForm({ companyId, onRated }: { companyId: string; onR
 
   if (state === 'noPosition') {
     return (
-      <div style={notice}>
-        You need a position at this company on your profile before you can rate it.{' '}
-        <Link href="/dashboard" style={{ color: 'var(--primary)', fontWeight: 600 }}>
-          Add one from your dashboard →
-        </Link>
+      <div>
+        <p style={{ ...muted, marginBottom: '.25rem' }}>
+          You need a position at this company on your profile before you can rate it — add one below.
+        </p>
+        <NewPositionForm
+          companyId={companyId}
+          onCreated={(position) => {
+            setPositions([position]);
+            setEmploymentHistoryId(position.id);
+            setState('ready');
+          }}
+        />
       </div>
     );
   }
@@ -138,16 +145,6 @@ export function RateCompanyForm({ companyId, onRated }: { companyId: string; onR
 }
 
 const muted: React.CSSProperties = { fontSize: '.85rem', color: 'var(--muted)' };
-
-const notice: React.CSSProperties = {
-  background: 'var(--bg)',
-  border: '1px solid var(--border)',
-  borderRadius: 10,
-  padding: '1rem',
-  fontSize: '.85rem',
-  color: 'var(--body)',
-  lineHeight: 1.6,
-};
 
 const fieldLabel: React.CSSProperties = {
   display: 'flex',

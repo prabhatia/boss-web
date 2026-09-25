@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api, type CompanySearchResult } from '@/lib/api';
+import { useMyRatingStatus } from '@/lib/useMyRatingStatus';
+import { CompanyRatingsDrawer } from './CompanyRatingsDrawer';
 import styles from './companies.module.css';
 
 interface Page<T> { content: T[]; totalElements: number; }
@@ -10,12 +13,15 @@ interface Page<T> { content: T[]; totalElements: number; }
 const ANY_INDUSTRY = 'All';
 
 export function CompaniesClient() {
+  const router = useRouter();
+  const { signedIn, hasRatedCompany } = useMyRatingStatus();
   const [companies, setCompanies] = useState<CompanySearchResult[]>([]);
   const [industries, setIndustries] = useState<string[]>([]);
   const [industry, setIndustry] = useState(ANY_INDUSTRY);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [unavailable, setUnavailable] = useState(false);
+  const [ratingsFor, setRatingsFor] = useState<CompanySearchResult | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -135,17 +141,42 @@ export function CompaniesClient() {
                         </span>
                       )}
                     </div>
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRatingsFor(c); }}
+                      className={styles.seeRatings}
+                    >
+                      See Ratings
+                    </button>
                   </>
                 ) : (
                   <div className={styles.pending}>
                     Scores appear at 5 reviews · {c.reviewCount} so far
                   </div>
                 )}
+
+                {signedIn && (
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/companies/${c.slug}?rate=1`); }}
+                    className={styles.rateLink}
+                  >
+                    {hasRatedCompany(c.id)
+                      ? <>You have rated this company already. <span style={{ textDecoration: 'underline' }}>Modify rating</span></>
+                      : 'Rate this company'}
+                  </button>
+                )}
               </Link>
             ))}
           </div>
         )}
       </div>
+
+      {ratingsFor && (
+        <CompanyRatingsDrawer
+          companyId={ratingsFor.id}
+          companyName={ratingsFor.name}
+          onClose={() => setRatingsFor(null)}
+        />
+      )}
     </main>
   );
 }
