@@ -8,6 +8,7 @@ import {
   type ModerationQueueSummary, type PendingReviewItem, type AuditHistory,
 } from '@/lib/api';
 import { AdminUserRoleManager } from './AdminUserRoleManager';
+import { AdminAllRatingsClient } from './AdminAllRatingsClient';
 import styles from './admin.module.css';
 
 type Tab = 'company' | 'manager' | 'manager-identity' | 'salary';
@@ -32,6 +33,7 @@ export function AdminModerationClient({ isSuperAdmin }: { isSuperAdmin: boolean 
   const [auditFor, setAuditFor] = useState<string | null>(null);
   const [audit, setAudit] = useState<AuditHistory | null>(null);
   const [reasonDrafts, setReasonDrafts] = useState<Record<string, string>>({});
+  const [showAllRatings, setShowAllRatings] = useState(false);
 
   async function loadSummary() {
     try {
@@ -98,7 +100,22 @@ export function AdminModerationClient({ isSuperAdmin }: { isSuperAdmin: boolean 
       </header>
 
       <div className={styles.container}>
-        <h1 className={styles.title}>Moderation</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h1 className={styles.title}>Moderation</h1>
+          {!showAllRatings && (
+            <button
+              onClick={() => setShowAllRatings(true)}
+              style={{ border: 'none', background: 'none', padding: 0, fontSize: '.85rem', fontWeight: 600, color: 'var(--primary)', textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              View All Ratings
+            </button>
+          )}
+        </div>
+
+        {showAllRatings ? (
+          <AdminAllRatingsClient onClose={() => setShowAllRatings(false)} />
+        ) : (
+          <>
 
         {isSuperAdmin && <AdminUserRoleManager />}
 
@@ -199,6 +216,8 @@ export function AdminModerationClient({ isSuperAdmin }: { isSuperAdmin: boolean 
               </article>
             ))}
           </div>
+        )}
+          </>
         )}
       </div>
     </main>
