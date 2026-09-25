@@ -334,6 +334,82 @@ export interface RatingResponse {
   createdAt: string;
 }
 
+/** One entry's rating status, keyed by employmentHistoryId — see POST /ratings/status. */
+export interface RatingStatus {
+  hasCompanyRating: boolean;
+  hasManagerRating: boolean;
+}
+
+/** One review row inside a CompanyRatingsPanel — mirrors RatingDto.CompanyRatingResponse. */
+export interface CompanyReviewResponse {
+  id: string;
+  companyId: string;
+  workLifeBalance: RatingMetricValue;
+  managementEmpathy: RatingMetricValue;
+  advancementOpportunity: RatingMetricValue;
+  benefits: RatingMetricValue;
+  upperManagementEthos: RatingMetricValue;
+  wouldRecommendScore: number;
+  roleTitle: string | null;
+  employmentType: string | null;
+  stillEmployed: boolean | null;
+  yearsAtCompany: number | null;
+  overallReviewText: string | null;
+  moderationStatus: string;
+  createdAt: string;
+}
+
+/**
+ * Backs the "See Ratings" panel (GET /ratings/company/{id}/panel). Every
+ * average and `ratings` come back null/empty below the review-count
+ * threshold — same suppression as CompanySearchResult's score fields.
+ * `lockedCount` is how many more approved reviews exist beyond the 5 shown;
+ * their content is intentionally never sent to the browser.
+ */
+export interface CompanyRatingsPanel {
+  companyId: string;
+  reviewCount: number;
+  avgOverallScore: number | null;
+  avgWorkLifeBalanceScore: number | null;
+  avgManagementEmpathyScore: number | null;
+  avgAdvancementOpportunityScore: number | null;
+  avgBenefitsScore: number | null;
+  avgUpperManagementEthosScore: number | null;
+  avgWouldRecommendScore: number | null;
+  ratings: CompanyReviewResponse[];
+  lockedCount: number;
+}
+
+/** One review row inside a ManagerRatingsPanel — mirrors RatingDto.ManagerRatingResponse. */
+export interface ManagerReviewResponse {
+  id: string;
+  managerId: string;
+  workLifeBalance: RatingMetricValue;
+  managementEmpathy: RatingMetricValue;
+  advancementOpportunity: RatingMetricValue;
+  wouldWorkAgainScore: number;
+  roleTitle: string | null;
+  employmentType: string | null;
+  stillEmployed: boolean | null;
+  yearsAtCompany: number | null;
+  overallReviewText: string | null;
+  moderationStatus: string;
+  createdAt: string;
+}
+
+/** Same idea as CompanyRatingsPanel, scoped to one manager (3-review threshold). */
+export interface ManagerRatingsPanel {
+  managerId: string;
+  reviewCount: number;
+  avgOverallScore: number | null;
+  avgWorkLifeBalanceScore: number | null;
+  avgManagementEmpathyScore: number | null;
+  avgAdvancementOpportunityScore: number | null;
+  avgWouldWorkAgainScore: number | null;
+  ratings: ManagerReviewResponse[];
+  lockedCount: number;
+}
+
 export interface ManagerDirectoryItem {
   id: string;
   letter: string;
@@ -366,6 +442,8 @@ export interface PersonSearchResult {
   reviewCount: number;
 }
 
+export type EmploymentType = 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'FREELANCE' | 'INTERNSHIP';
+
 export interface CreatePositionRequest {
   companyId: string;
   roleTitle: string;
@@ -373,6 +451,7 @@ export interface CreatePositionRequest {
   startDate?: string;
   endDate?: string;
   isCurrent?: boolean;
+  employmentType?: EmploymentType;
 }
 
 export interface LinkManagerRequest {

@@ -2,14 +2,18 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api, type PersonSearchResult } from '@/lib/api';
+import { useMyRatingStatus } from '@/lib/useMyRatingStatus';
 import { IndustryBrowser } from './IndustryBrowser';
+import { ManagerRatingsDrawer } from './ManagerRatingsDrawer';
 import styles from './people.module.css';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').concat('#');
 const ANY_INDUSTRY = 'Any';
 
 export function PeopleClient() {
+  const { signedIn, hasRatedManager } = useMyRatingStatus();
   const [people, setPeople] = useState<PersonSearchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -180,7 +184,7 @@ export function PeopleClient() {
                       </p>
                       <button onClick={clearSearch} style={clearLink}>Clear search</button>
                     </div>
-                    <PeopleList results={results} />
+                    <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} />
                   </>
                 ) : companyFilter ? (
                   <>
@@ -190,12 +194,12 @@ export function PeopleClient() {
                       </p>
                       <button onClick={() => setCompanyFilter('')} style={clearLink}>Clear</button>
                     </div>
-                    <PeopleList results={results} />
+                    <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} />
                   </>
                 ) : !selectedLetter ? (
                   <p style={muted}>Pick a letter to browse people, search by name, or select a company above.</p>
                 ) : results.length > 0 ? (
-                  <PeopleList results={results} />
+                  <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} />
                 ) : (
                   <p style={muted}>No one under &ldquo;{selectedLetter}&rdquo; yet.</p>
                 )}
@@ -208,7 +212,18 @@ export function PeopleClient() {
   );
 }
 
-function PeopleList({ results }: { results: PersonSearchResult[] }) {
+function PeopleList({
+  results,
+  signedIn,
+  hasRatedManager,
+}: {
+  results: PersonSearchResult[];
+  signedIn: boolean;
+  hasRatedManager: (managerId: string) => boolean;
+}) {
+  const router = useRouter();
+  const [ratingsFor, setRatingsFor] = useState<PersonSearchResult | null>(null);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
       {results.map((p) => (
@@ -219,16 +234,46 @@ function PeopleList({ results }: { results: PersonSearchResult[] }) {
               {p.roleTitle ? `${p.roleTitle} · ` : ''}{p.companyName}
             </div>
           </div>
-          {p.avgOverallScore != null ? (
-            <div style={{ flexShrink: 0, textAlign: 'right' }}>
-              <div style={personScoreVal}>{p.avgOverallScore.toFixed(1)}/10</div>
-              <div style={personScoreLbl}>{p.reviewCount} reviews</div>
-            </div>
-          ) : (
-            <div style={personPending}>Scores appear at 3 reviews · {p.reviewCount} so far</div>
-          )}
+          <div style={{ flexShrink: 0, textAlign: 'right' }}>
+            {p.avgOverallScore != null ? (
+              <>
+                <div style={personScoreVal}>{p.avgOverallScore.toFixed(1)}/10</div>
+                <div style={personScoreLbl}>{p.reviewCount} reviews</div>
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRatingsFor(p); }}
+                  style={seeRatingsLink}
+                >
+                  See Ratings
+                </button>
+              </>
+            ) : (
+              <div style={personPending}>Scores appear at 3 reviews · {p.reviewCount} so far</div>
+            )}
+            {signedIn && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  router.push(`/companies/${p.companySlug}?rateManager=${p.id}&rateManagerName=${encodeURIComponent(p.displayLabel)}`);
+                }}
+                style={seeRatingsLink}
+              >
+                {hasRatedManager(p.id)
+                  ? <>You have rated already. <span style={{ textDecoration: 'underline' }}>Modify rating</span></>
+                  : 'Rate this manager'}
+              </button>
+            )}
+          </div>
         </Link>
       ))}
+
+      {ratingsFor && (
+        <ManagerRatingsDrawer
+          managerId={ratingsFor.id}
+          managerName={ratingsFor.displayLabel}
+          onClose={() => setRatingsFor(null)}
+        />
+      )}
     </div>
   );
 }
@@ -356,6 +401,20 @@ const personScoreVal: React.CSSProperties = {
 const personScoreLbl: React.CSSProperties = {
   fontSize: '.68rem',
   color: 'var(--muted)',
+};
+
+const seeRatingsLink: React.CSSProperties = {
+  display: 'block',
+  marginTop: '.3rem',
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  fontSize: '.72rem',
+  fontWeight: 700,
+  color: 'var(--primary)',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontFamily: 'inherit',
 };
 
 const personPending: React.CSSProperties = {

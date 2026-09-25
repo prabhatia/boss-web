@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { api, ApiError, type CreatePositionRequest, type EmploymentHistoryResponse } from '@/lib/api';
+import { api, ApiError, type CreatePositionRequest, type EmploymentHistoryResponse, type EmploymentType } from '@/lib/api';
+
+const EMPLOYMENT_TYPES: { value: EmploymentType; label: string }[] = [
+  { value: 'FULL_TIME', label: 'Full-time' },
+  { value: 'PART_TIME', label: 'Part-time' },
+  { value: 'CONTRACT', label: 'Contract' },
+  { value: 'FREELANCE', label: 'Freelance' },
+  { value: 'INTERNSHIP', label: 'Internship' },
+];
 
 export function NewPositionForm({
   companyId,
@@ -11,9 +19,11 @@ export function NewPositionForm({
   onCreated: (position: EmploymentHistoryResponse) => void;
 }) {
   const [roleTitle, setRoleTitle] = useState('');
+  const [employmentType, setEmploymentType] = useState<EmploymentType | ''>('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [isCurrent, setIsCurrent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,8 +45,9 @@ export function NewPositionForm({
         roleTitle: roleTitle.trim(),
         description: skipOptionalFields ? undefined : description.trim() || undefined,
         startDate: skipOptionalFields ? undefined : startDate || undefined,
-        endDate: skipOptionalFields ? undefined : endDate || undefined,
-        isCurrent: skipOptionalFields ? true : !endDate,
+        endDate: skipOptionalFields || isCurrent ? undefined : endDate || undefined,
+        isCurrent: skipOptionalFields ? true : isCurrent || !endDate,
+        employmentType: skipOptionalFields ? undefined : employmentType || undefined,
       };
       const position = await api.post<EmploymentHistoryResponse>('profile', '/profiles/me/employment-history', req);
       onCreated(position);
@@ -58,7 +69,17 @@ export function NewPositionForm({
       </label>
 
       <label style={fieldLabel}>
-        Details of duties (optional)
+        Employment type (optional)
+        <select value={employmentType} onChange={(e) => setEmploymentType(e.target.value as EmploymentType | '')} style={input}>
+          <option value="">Not specified</option>
+          {EMPLOYMENT_TYPES.map((t) => (
+            <option key={t.value} value={t.value}>{t.label}</option>
+          ))}
+        </select>
+      </label>
+
+      <label style={fieldLabel}>
+        Duties performed and skills used (optional)
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} style={{ ...input, resize: 'vertical' }} />
       </label>
 
@@ -67,11 +88,22 @@ export function NewPositionForm({
           From (optional)
           <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={input} />
         </label>
-        <label style={fieldLabel}>
-          To (optional, blank = current)
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={input} />
+        <label style={{ ...fieldLabel, opacity: isCurrent ? 0.5 : 1 }}>
+          To (optional)
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            disabled={isCurrent}
+            style={input}
+          />
         </label>
       </div>
+
+      <label style={{ ...fieldLabel, flexDirection: 'row', alignItems: 'center', gap: '.5rem' }}>
+        <input type="checkbox" checked={isCurrent} onChange={(e) => setIsCurrent(e.target.checked)} />
+        I currently work here
+      </label>
 
       {error && <p style={{ fontSize: '.78rem', color: 'var(--red)', marginTop: '.4rem' }}>{error}</p>}
 

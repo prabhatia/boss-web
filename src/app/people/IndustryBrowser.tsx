@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api, type CompanySearchResult, type ManagerDirectoryItem } from '@/lib/api';
+import { useMyRatingStatus } from '@/lib/useMyRatingStatus';
+import { ManagerRatingsDrawer } from './ManagerRatingsDrawer';
 
 interface Page<T> { content: T[]; totalElements: number; }
 
@@ -23,6 +26,8 @@ function groupByLetter<T>(items: T[], letterOf: (item: T) => string): Map<string
 }
 
 export function IndustryBrowser({ industry }: { industry: string }) {
+  const router = useRouter();
+  const { signedIn, hasRatedManager } = useMyRatingStatus();
   const [companies, setCompanies] = useState<CompanySearchResult[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
   const [companiesError, setCompaniesError] = useState(false);
@@ -33,6 +38,7 @@ export function IndustryBrowser({ industry }: { industry: string }) {
   const [loadingManagers, setLoadingManagers] = useState(false);
   const [managersError, setManagersError] = useState(false);
   const [expandedManagerLetter, setExpandedManagerLetter] = useState<string | null>(null);
+  const [ratingsFor, setRatingsFor] = useState<ManagerDirectoryItem | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,7 +50,7 @@ export function IndustryBrowser({ industry }: { industry: string }) {
       try {
         const params = new URLSearchParams({ industry, size: '1000', sort: 'name,asc' });
         const res = await api.get<Page<CompanySearchResult>>('company', `/companies?${params}`);
-        if (!cancelled) setCompanies((res.content ?? []).filter((c) => c.reviewCount > 0));
+        if (!cancelled) setCompanies(res.content ?? []);
       } catch {
         if (!cancelled) setCompaniesError(true);
       } finally {
@@ -83,7 +89,7 @@ export function IndustryBrowser({ industry }: { industry: string }) {
   }
 
   if (companiesByLetter.size === 0) {
-    return <p style={muted}>No rated companies in {industry} yet.</p>;
+    return <p style={muted}>No companies in {industry} yet.</p>;
   }
 
   return (
@@ -154,13 +160,30 @@ export function IndustryBrowser({ industry }: { industry: string }) {
                           <span style={{ fontWeight: 600 }}>{m.displayLabel}</span>
                           {m.roleTitle && <span style={{ color: 'var(--muted)', fontSize: '.78rem' }}> — {m.roleTitle}</span>}
                           {m.avgOverallScore != null ? (
-                            <span style={{ color: 'var(--primary)', fontSize: '.78rem', marginLeft: '.4rem' }}>
-                              {m.avgOverallScore.toFixed(1)}/10 · {m.reviewCount} reviews
-                            </span>
+                            <>
+                              <span style={{ color: 'var(--primary)', fontSize: '.78rem', marginLeft: '.4rem' }}>
+                                {m.avgOverallScore.toFixed(1)}/10 · {m.reviewCount} reviews
+                              </span>
+                              <button onClick={() => setRatingsFor(m)} style={seeRatingsLink}>
+                                See Ratings
+                              </button>
+                            </>
                           ) : (
                             <span style={{ color: 'var(--muted)', fontSize: '.72rem', marginLeft: '.4rem' }}>
                               Scores appear at 3 reviews · {m.reviewCount} so far
                             </span>
+                          )}
+                          {signedIn && selectedCompany && (
+                            <button
+                              onClick={() => router.push(
+                                `/companies/${selectedCompany.slug}?rateManager=${m.id}&rateManagerName=${encodeURIComponent(m.displayLabel)}`
+                              )}
+                              style={seeRatingsLink}
+                            >
+                              {hasRatedManager(m.id)
+                                ? <>You have rated already. <span style={{ textDecoration: 'underline' }}>Modify rating</span></>
+                                : 'Rate this manager'}
+                            </button>
                           )}
                         </div>
                       ))}
@@ -172,11 +195,34 @@ export function IndustryBrowser({ industry }: { industry: string }) {
           )}
         </div>
       )}
+
+      {ratingsFor && (
+        <ManagerRatingsDrawer
+          managerId={ratingsFor.id}
+          managerName={ratingsFor.displayLabel}
+          onClose={() => setRatingsFor(null)}
+        />
+      )}
     </div>
   );
 }
 
 const muted: React.CSSProperties = { fontSize: '.85rem', color: 'var(--muted)' };
+
+const seeRatingsLink: React.CSSProperties = {
+  display: 'block',
+  marginTop: '.25rem',
+  marginLeft: '.4rem',
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  fontSize: '.72rem',
+  fontWeight: 700,
+  color: 'var(--primary)',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+};
 
 const colLabel: React.CSSProperties = {
   fontSize: '.78rem',

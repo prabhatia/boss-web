@@ -1,17 +1,25 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api, ApiError, type CompanyProfileResponse } from '@/lib/api';
+import { useSearchParams } from 'next/navigation';
+import { api, ApiError, type CompanyProfileResponse, type ManagerRef } from '@/lib/api';
 import { RateCompanyForm } from './RateCompanyForm';
 import { ManagerRatingFlow } from './ManagerRatingFlow';
 import styles from './companyDetail.module.css';
 
 export function CompanyDetailClient({ slug }: { slug: string }) {
+  const searchParams = useSearchParams();
   const [company, setCompany] = useState<CompanyProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
-  const [showRateForm, setShowRateForm] = useState(false);
+  const [showRateForm, setShowRateForm] = useState(searchParams.get('rate') === '1');
+
+  // Arriving from a specific manager's "Rate this manager" link on /people.
+  const rateManagerId = searchParams.get('rateManager');
+  const rateManagerName = searchParams.get('rateManagerName');
+  const initialManager: ManagerRef | undefined =
+    rateManagerId && rateManagerName ? { id: rateManagerId, displayLabel: rateManagerName } : undefined;
 
   useEffect(() => {
     let cancelled = false;
@@ -104,7 +112,7 @@ export function CompanyDetailClient({ slug }: { slug: string }) {
           <div className={styles.cardHead}>
             <h2 className={styles.cardTitle}>Rate a manager</h2>
           </div>
-          <ManagerRatingFlow companyId={company.id} />
+          <ManagerRatingFlow companyId={company.id} initialManager={initialManager} />
         </section>
       </div>
     </main>
