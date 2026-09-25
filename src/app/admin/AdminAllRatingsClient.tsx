@@ -181,8 +181,8 @@ export function AdminAllRatingsClient({ onClose }: { onClose: () => void }) {
                                       {' · '}
                                       {r.moderatedBy ? (
                                         <>
-                                          Reviewed by {reviewer?.displayName ?? reviewer?.email ?? 'unknown admin'}
-                                          {' '}(ID: {r.moderatedBy})
+                                          Reviewed by {reviewer?.displayName ?? 'admin'}
+                                          {' '}({reviewer?.email ?? r.moderatedBy})
                                           {r.moderatedAt && ` on ${new Date(r.moderatedAt).toLocaleDateString()}`}
                                         </>
                                       ) : (
