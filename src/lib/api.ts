@@ -226,6 +226,16 @@ export interface RecommendedJob {
 
 // ── Companies & ratings ──────────────────────────────────────────────────
 
+export interface CreateCompanyRequest {
+  name: string;
+  industry: string;
+  sizeBand?: string;
+  headquarters?: string;
+  website?: string;
+  description?: string;
+  foundedYear?: number;
+}
+
 export interface CompanySearchResult {
   id: string;
   name: string;

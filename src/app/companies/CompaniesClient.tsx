@@ -7,14 +7,25 @@ import styles from './companies.module.css';
 
 interface Page<T> { content: T[]; totalElements: number; }
 
-const INDUSTRIES = ['All', 'Technology', 'Finance', 'Healthcare', 'Retail', 'Consulting'];
+const ANY_INDUSTRY = 'All';
 
 export function CompaniesClient() {
   const [companies, setCompanies] = useState<CompanySearchResult[]>([]);
-  const [industry, setIndustry] = useState('All');
+  const [industries, setIndustries] = useState<string[]>([]);
+  const [industry, setIndustry] = useState(ANY_INDUSTRY);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [unavailable, setUnavailable] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setIndustries(await api.get<string[]>('company', '/companies/industries'));
+      } catch {
+        // Industry filter just won't have options — search and the unfiltered grid still work.
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -23,7 +34,7 @@ export function CompaniesClient() {
       setUnavailable(false);
       try {
         const params = new URLSearchParams({ size: '20' });
-        if (industry !== 'All') params.set('industry', industry);
+        if (industry !== ANY_INDUSTRY) params.set('industry', industry);
         if (query.trim()) params.set('name', query.trim());
 
         const res = await api.get<Page<CompanySearchResult>>('company', `/companies?${params}`);
@@ -41,12 +52,19 @@ export function CompaniesClient() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div className="container">
-          <h1 className={styles.title}>Company ratings</h1>
-          <p className={styles.sub}>
-            Culture, management, compensation, growth, and diversity — scored by
-            people who actually worked there. Scores appear once a company has
-            five or more approved reviews.
-          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+            <div>
+              <h1 className={styles.title}>Company ratings</h1>
+              <p className={styles.sub}>
+                Culture, management, compensation, growth, and diversity — scored by
+                people who actually worked there. Scores appear once a company has
+                five or more approved reviews.
+              </p>
+            </div>
+            <Link href="/companies/new" className="btn btn-outline" style={{ flexShrink: 0 }}>
+              Add your company
+            </Link>
+          </div>
 
           <div className={styles.controls}>
             <input
@@ -57,17 +75,17 @@ export function CompaniesClient() {
               className={styles.search}
               aria-label="Search companies"
             />
-            <div className={styles.chips}>
-              {INDUSTRIES.map((i) => (
-                <button
-                  key={i}
-                  onClick={() => setIndustry(i)}
-                  className={`${styles.chip}${industry === i ? ` ${styles.chipActive}` : ''}`}
-                >
-                  {i}
-                </button>
+            <select
+              value={industry}
+              onChange={(e) => setIndustry(e.target.value)}
+              className={styles.industrySelect}
+              aria-label="Filter by industry"
+            >
+              <option value={ANY_INDUSTRY}>All industries</option>
+              {industries.map((i) => (
+                <option key={i} value={i}>{i}</option>
               ))}
-            </div>
+            </select>
           </div>
         </div>
       </header>
