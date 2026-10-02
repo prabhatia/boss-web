@@ -419,8 +419,13 @@ export interface ManagerDirectoryItem {
   reviewCount: number;
 }
 
+export type ManagerTitle = 'Mr' | 'Mrs' | 'Ms' | 'Miss' | 'Dr' | 'Sir';
+
 export interface CreateManagerRequest {
-  realName: string;
+  title?: ManagerTitle;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
   linkedinUrl?: string;
 }
 

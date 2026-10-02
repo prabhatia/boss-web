@@ -1,9 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { api, ApiError, type CreateManagerRequest, type ManagerRef } from '@/lib/api';
+import { api, ApiError, type CreateManagerRequest, type ManagerRef, type ManagerTitle } from '@/lib/api';
 
 const LINKEDIN_URL_PATTERN = /^https?:\/\/(www\.)?linkedin\.com\/in\/[\w-]+\/?$/i;
+
+const TITLES: ManagerTitle[] = ['Mr', 'Mrs', 'Ms', 'Miss', 'Dr', 'Sir'];
+
+/** Best-effort split of a single typed/searched name into first/last for prefilling. */
+function splitName(name: string): { first: string; last: string } {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { first: '', last: '' };
+  if (parts.length === 1) return { first: parts[0], last: '' };
+  return { first: parts[0], last: parts[parts.length - 1] };
+}
 
 export function NewManagerForm({
   companyId,
@@ -12,10 +22,14 @@ export function NewManagerForm({
 }: {
   companyId: string;
   onConfirmed: (ref: ManagerRef) => void;
-  /** Pre-fills the name field — e.g. from a directory search that found no existing match. */
+  /** Pre-fills the name fields (best-effort split) — e.g. from a directory search that found no existing match. */
   initialName?: string;
 }) {
-  const [name, setName] = useState(initialName ?? '');
+  const initialSplit = splitName(initialName ?? '');
+  const [title, setTitle] = useState<ManagerTitle | ''>('');
+  const [firstName, setFirstName] = useState(initialSplit.first);
+  const [middleName, setMiddleName] = useState('');
+  const [lastName, setLastName] = useState(initialSplit.last);
   const [linkedinUrl, setLinkedinUrl] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,15 +38,18 @@ export function NewManagerForm({
   const linkedinValid = LINKEDIN_URL_PATTERN.test(linkedinUrl.trim());
 
   async function confirm() {
-    if (!name.trim()) {
-      setError('Enter a name.');
+    if (!firstName.trim() || !lastName.trim()) {
+      setError('First and last name are both required.');
       return;
     }
     setSubmitting(true);
     setError(null);
     try {
       const req: CreateManagerRequest = {
-        realName: name.trim(),
+        title: title || undefined,
+        firstName: firstName.trim(),
+        middleName: middleName.trim() || undefined,
+        lastName: lastName.trim(),
         linkedinUrl: linkedinTouched && linkedinValid ? linkedinUrl.trim() : undefined,
       };
       const ref = await api.post<ManagerRef>('company', `/companies/${companyId}/managers`, req);
@@ -45,16 +62,29 @@ export function NewManagerForm({
 
   return (
     <div style={wrap}>
-      <label style={fieldLabel}>
-        Name
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Full name"
-          style={input}
-        />
-      </label>
+      <div style={nameRow}>
+        <label style={fieldLabel}>
+          Title
+          <select value={title} onChange={(e) => setTitle(e.target.value as ManagerTitle | '')} style={input}>
+            <option value="">—</option>
+            {TITLES.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </label>
+        <label style={fieldLabel}>
+          First name *
+          <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={input} />
+        </label>
+        <label style={fieldLabel}>
+          Middle name/initial
+          <input type="text" value={middleName} onChange={(e) => setMiddleName(e.target.value)} style={input} />
+        </label>
+        <label style={fieldLabel}>
+          Last name *
+          <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} style={input} />
+        </label>
+      </div>
 
       <label style={fieldLabel}>
         LinkedIn profile URL
@@ -90,6 +120,12 @@ const wrap: React.CSSProperties = {
   borderRadius: 10,
   padding: '1rem',
   marginTop: '.75rem',
+};
+
+const nameRow: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '.7fr 1fr 1fr 1fr',
+  gap: '.7rem',
 };
 
 const fieldLabel: React.CSSProperties = {
