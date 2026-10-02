@@ -5,14 +5,7 @@ import { api, ApiError, type CreateManagerRequest, type ManagerRef, type Manager
 
 const LINKEDIN_URL_PATTERN = /^https?:\/\/(www\.)?linkedin\.com\/in\/[\w-]+\/?$/i;
 
-const TITLES: { value: ManagerTitle; label: string }[] = [
-  { value: 'MR', label: 'Mr' },
-  { value: 'MRS', label: 'Mrs' },
-  { value: 'MS', label: 'Ms' },
-  { value: 'MISS', label: 'Miss' },
-  { value: 'DR', label: 'Dr' },
-  { value: 'SIR', label: 'Sir' },
-];
+const TITLES: ManagerTitle[] = ['Mr', 'Mrs', 'Ms', 'Miss', 'Dr', 'Sir'];
 
 /** Best-effort split of a single typed/searched name into first/last for prefilling. */
 function splitName(name: string): { first: string; last: string } {
@@ -75,7 +68,7 @@ export function NewManagerForm({
           <select value={title} onChange={(e) => setTitle(e.target.value as ManagerTitle | '')} style={input}>
             <option value="">—</option>
             {TITLES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+              <option key={t} value={t}>{t}</option>
             ))}
           </select>
         </label>

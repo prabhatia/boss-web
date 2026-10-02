@@ -419,7 +419,7 @@ export interface ManagerDirectoryItem {
   reviewCount: number;
 }
 
-export type ManagerTitle = 'MR' | 'MRS' | 'MS' | 'MISS' | 'DR' | 'SIR';
+export type ManagerTitle = 'Mr' | 'Mrs' | 'Ms' | 'Miss' | 'Dr' | 'Sir';
 
 export interface CreateManagerRequest {
   title?: ManagerTitle;
