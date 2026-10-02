@@ -1,9 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { api, ApiError, type CreateManagerRequest, type ManagerRef } from '@/lib/api';
+import { api, ApiError, type CreateManagerRequest, type ManagerRef, type ManagerTitle } from '@/lib/api';
 
 const LINKEDIN_URL_PATTERN = /^https?:\/\/(www\.)?linkedin\.com\/in\/[\w-]+\/?$/i;
+
+const TITLES: { value: ManagerTitle; label: string }[] = [
+  { value: 'MR', label: 'Mr' },
+  { value: 'MRS', label: 'Mrs' },
+  { value: 'MS', label: 'Ms' },
+  { value: 'MISS', label: 'Miss' },
+  { value: 'DR', label: 'Dr' },
+  { value: 'SIR', label: 'Sir' },
+];
 
 /** Best-effort split of a single typed/searched name into first/last for prefilling. */
 function splitName(name: string): { first: string; last: string } {
@@ -24,6 +33,7 @@ export function NewManagerForm({
   initialName?: string;
 }) {
   const initialSplit = splitName(initialName ?? '');
+  const [title, setTitle] = useState<ManagerTitle | ''>('');
   const [firstName, setFirstName] = useState(initialSplit.first);
   const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState(initialSplit.last);
@@ -43,6 +53,7 @@ export function NewManagerForm({
     setError(null);
     try {
       const req: CreateManagerRequest = {
+        title: title || undefined,
         firstName: firstName.trim(),
         middleName: middleName.trim() || undefined,
         lastName: lastName.trim(),
@@ -59,6 +70,15 @@ export function NewManagerForm({
   return (
     <div style={wrap}>
       <div style={nameRow}>
+        <label style={fieldLabel}>
+          Title
+          <select value={title} onChange={(e) => setTitle(e.target.value as ManagerTitle | '')} style={input}>
+            <option value="">—</option>
+            {TITLES.map((t) => (
+              <option key={t.value} value={t.value}>{t.label}</option>
+            ))}
+          </select>
+        </label>
         <label style={fieldLabel}>
           First name *
           <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={input} />
@@ -111,7 +131,7 @@ const wrap: React.CSSProperties = {
 
 const nameRow: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr 1fr',
+  gridTemplateColumns: '.7fr 1fr 1fr 1fr',
   gap: '.7rem',
 };
 
