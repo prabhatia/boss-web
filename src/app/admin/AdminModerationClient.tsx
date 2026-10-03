@@ -11,14 +11,36 @@ import { AdminUserRoleManager } from './AdminUserRoleManager';
 import { AdminAllRatingsClient } from './AdminAllRatingsClient';
 import styles from './admin.module.css';
 
-type Tab = 'company' | 'manager' | 'manager-identity' | 'salary';
+type Tab = 'company' | 'manager' | 'group' | 'manager-identity' | 'salary';
 
-const TAB_CONFIG: Record<Tab, { label: string; entityType: string }> = {
-  'company':          { label: 'Company Ratings',    entityType: 'COMPANY_RATING' },
-  'manager':          { label: 'Manager Ratings',    entityType: 'MANAGER_RATING' },
-  'manager-identity': { label: 'Manager Identities', entityType: 'MANAGER_IDENTITY' },
-  'salary':           { label: 'Salary Submissions', entityType: 'SALARY_SUBMISSION' },
+const TAB_CONFIG: Record<Tab, { label: string; entityType: string; description: string }> = {
+  'company':          {
+    label: 'Company Ratings', entityType: 'COMPANY_RATING',
+    description: 'Ratings a candidate submitted about a company — the company name is shown so you can see what’s being reviewed.',
+  },
+  'manager':          {
+    label: 'Manager Ratings', entityType: 'MANAGER_RATING',
+    description: 'Approving here publishes this rating’s scores and review text publicly — it does NOT reveal the manager’s real name. Until their name claim is separately approved under "Manager Name Claims," this rating still displays under the generic "Manager (pending verification)" alias, not a real name.',
+  },
+  'group':            {
+    label: 'Group Ratings', entityType: 'GROUP_RATING',
+    description: 'Ratings a candidate submitted about a team/group within a company (collaboration, autonomy, inclusion, work-life balance) — a separate rating type from company and manager ratings.',
+  },
+  'manager-identity': {
+    label: 'Manager Name Claims', entityType: 'MANAGER_IDENTITY',
+    description: 'Managers are anonymous by default, shown everywhere only as "Manager (pending verification)." A rater has claimed this manager’s real name + LinkedIn URL. Approving here "unhides" that name — it immediately replaces the generic alias on the company’s own manager directory (where ratings and the "Rate a manager" search live) and in the cross-company /people search. Rejecting keeps them anonymous. This is separate from approving any rating about this manager.',
+  },
+  'salary':           {
+    label: 'Salary Submissions', entityType: 'SALARY_SUBMISSION',
+    description: 'Self-reported compensation data submitted for a company.',
+  },
 };
+// 'group' intentionally excluded — no UI anywhere lets a candidate submit a
+// group rating yet, so this queue could never have real content. The backend
+// endpoints (GroupRatingRepository.findByModerationStatus,
+// ModerationService.getPendingGroupRatings, GET .../pending/group) and the
+// 'group' entry in TAB_CONFIG above are left in place — add 'group' back
+// here (and restore its SummaryCard below) once a submission flow exists.
 const TAB_ORDER: Tab[] = ['company', 'manager', 'manager-identity', 'salary'];
 
 interface Page<T> { content: T[]; totalElements: number; }
@@ -121,10 +143,10 @@ export function AdminModerationClient({ isSuperAdmin }: { isSuperAdmin: boolean 
 
         {summary && (
           <div className={styles.summaryRow}>
-            <SummaryCard label="Company ratings" value={summary.pendingCompanyRatings} />
-            <SummaryCard label="Manager ratings" value={summary.pendingManagerRatings} />
-            <SummaryCard label="Group ratings" value={summary.pendingGroupRatings} />
-            <SummaryCard label="Manager identities" value={summary.pendingManagerIdentities} />
+            <SummaryCard label="Company ratings" value={summary.pendingCompanyRatings} onClick={() => setTab('company')} />
+            <SummaryCard label="Manager ratings" value={summary.pendingManagerRatings} onClick={() => setTab('manager')} />
+            {/* Group ratings card intentionally omitted — see TAB_ORDER comment above. */}
+            <SummaryCard label="Manager name claims" value={summary.pendingManagerIdentities} onClick={() => setTab('manager-identity')} />
           </div>
         )}
 
@@ -139,6 +161,8 @@ export function AdminModerationClient({ isSuperAdmin }: { isSuperAdmin: boolean 
             </button>
           ))}
         </div>
+
+        <p className={styles.muted} style={{ marginBottom: '1rem' }}>{TAB_CONFIG[tab].description}</p>
 
         {error && <p className={styles.error}>{error}</p>}
 
@@ -224,11 +248,11 @@ export function AdminModerationClient({ isSuperAdmin }: { isSuperAdmin: boolean 
   );
 }
 
-function SummaryCard({ label, value }: { label: string; value: number }) {
+function SummaryCard({ label, value, onClick }: { label: string; value: number; onClick?: () => void }) {
   return (
-    <div className={styles.summaryCard}>
+    <button onClick={onClick} className={styles.summaryCard} style={{ width: '100%', cursor: onClick ? 'pointer' : 'default', font: 'inherit' }}>
       <div className={styles.summaryValue}>{value}</div>
       <div className={styles.summaryLabel}>{label}</div>
-    </div>
+    </button>
   );
 }
