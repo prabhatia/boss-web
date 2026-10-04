@@ -27,7 +27,7 @@ function groupByLetter<T>(items: T[], letterOf: (item: T) => string): Map<string
 
 export function IndustryBrowser({ industry }: { industry: string }) {
   const router = useRouter();
-  const { signedIn, hasRatedManager } = useMyRatingStatus();
+  const { signedIn, hasRatedManager, myManagerRatingEmploymentHistoryId } = useMyRatingStatus();
   const [companies, setCompanies] = useState<CompanySearchResult[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
   const [companiesError, setCompaniesError] = useState(false);
@@ -160,18 +160,18 @@ export function IndustryBrowser({ industry }: { industry: string }) {
                           <span style={{ fontWeight: 600 }}>{m.displayLabel}</span>
                           {m.roleTitle && <span style={{ color: 'var(--muted)', fontSize: '.78rem' }}> — {m.roleTitle}</span>}
                           {m.avgOverallScore != null ? (
-                            <>
-                              <span style={{ color: 'var(--primary)', fontSize: '.78rem', marginLeft: '.4rem' }}>
-                                {m.avgOverallScore.toFixed(1)}/10 · {m.reviewCount} reviews
-                              </span>
-                              <button onClick={() => setRatingsFor(m)} style={seeRatingsLink}>
-                                See Ratings
-                              </button>
-                            </>
+                            <span style={{ color: 'var(--primary)', fontSize: '.78rem', marginLeft: '.4rem' }}>
+                              {m.avgOverallScore.toFixed(1)}/10 · {m.reviewCount} reviews
+                            </span>
                           ) : (
                             <span style={{ color: 'var(--muted)', fontSize: '.72rem', marginLeft: '.4rem' }}>
                               Scores appear at 3 reviews · {m.reviewCount} so far
                             </span>
+                          )}
+                          {(m.avgOverallScore != null || hasRatedManager(m.id)) && (
+                            <button onClick={() => setRatingsFor(m)} style={seeRatingsLink}>
+                              See Ratings
+                            </button>
                           )}
                           {signedIn && selectedCompany && (
                             <button
@@ -200,6 +200,7 @@ export function IndustryBrowser({ industry }: { industry: string }) {
         <ManagerRatingsDrawer
           managerId={ratingsFor.id}
           managerName={ratingsFor.displayLabel}
+          myEmploymentHistoryId={myManagerRatingEmploymentHistoryId(ratingsFor.id)}
           onClose={() => setRatingsFor(null)}
         />
       )}

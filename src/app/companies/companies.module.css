@@ -38,6 +38,13 @@
 .verified { color: var(--green); font-size: .8rem; }
 .coMeta { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
 
+.statusBadge {
+  display: inline-block; font-size: .68rem; font-weight: 700;
+  padding: .15rem .55rem; border-radius: 999px; margin-bottom: .6rem;
+}
+.statusBadgePublic { composes: statusBadge; background: #ECFDF5; color: var(--green); }
+.statusBadgePending { composes: statusBadge; background: var(--bg); color: var(--muted); }
+
 .scoreRow { display: flex; align-items: baseline; gap: .35rem; }
 .scoreBig { font-size: 1.9rem; font-weight: 900; color: var(--ink); line-height: 1; }
 .scoreOutOf { font-size: .85rem; color: var(--muted); }

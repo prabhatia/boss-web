@@ -14,7 +14,7 @@ const ANY_INDUSTRY = 'All';
 
 export function CompaniesClient() {
   const router = useRouter();
-  const { signedIn, hasRatedCompany } = useMyRatingStatus();
+  const { signedIn, hasRatedCompany, myCompanyRatingEmploymentHistoryId } = useMyRatingStatus();
   const [companies, setCompanies] = useState<CompanySearchResult[]>([]);
   const [industries, setIndustries] = useState<string[]>([]);
   const [industry, setIndustry] = useState(ANY_INDUSTRY);
@@ -127,6 +127,10 @@ export function CompaniesClient() {
                   </div>
                 </div>
 
+                <span className={c.avgOverallScore != null ? styles.statusBadgePublic : styles.statusBadgePending}>
+                  {c.avgOverallScore != null ? 'Public' : 'Not yet public(not enough reviews)'}
+                </span>
+
                 {c.avgOverallScore != null ? (
                   <>
                     <div className={styles.scoreRow}>
@@ -141,17 +145,20 @@ export function CompaniesClient() {
                         </span>
                       )}
                     </div>
-                    <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRatingsFor(c); }}
-                      className={styles.seeRatings}
-                    >
-                      See Ratings
-                    </button>
                   </>
                 ) : (
                   <div className={styles.pending}>
                     Scores appear at 5 reviews · {c.reviewCount} so far
                   </div>
+                )}
+
+                {(c.avgOverallScore != null || hasRatedCompany(c.id)) && (
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRatingsFor(c); }}
+                    className={styles.seeRatings}
+                  >
+                    See Ratings
+                  </button>
                 )}
 
                 {signedIn && (
@@ -174,6 +181,7 @@ export function CompaniesClient() {
         <CompanyRatingsDrawer
           companyId={ratingsFor.id}
           companyName={ratingsFor.name}
+          myEmploymentHistoryId={myCompanyRatingEmploymentHistoryId(ratingsFor.id)}
           onClose={() => setRatingsFor(null)}
         />
       )}

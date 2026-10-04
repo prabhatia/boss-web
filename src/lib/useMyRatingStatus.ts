@@ -49,13 +49,26 @@ export function useMyRatingStatus() {
     return () => { cancelled = true; };
   }, []);
 
+  /** The employmentHistoryId whose rating of this company is "mine", if any. */
+  function myCompanyRatingEmploymentHistoryId(companyId: string): string | undefined {
+    return employmentHistory.find((e) => e.companyId === companyId && statusById[e.id]?.hasCompanyRating)?.id;
+  }
+
+  /** The employmentHistoryId whose rating of this manager is "mine", if any. */
+  function myManagerRatingEmploymentHistoryId(managerId: string): string | undefined {
+    return employmentHistory.find((e) => e.managerId === managerId && statusById[e.id]?.hasManagerRating)?.id;
+  }
+
   function hasRatedCompany(companyId: string): boolean {
-    return employmentHistory.some((e) => e.companyId === companyId && statusById[e.id]?.hasCompanyRating);
+    return myCompanyRatingEmploymentHistoryId(companyId) !== undefined;
   }
 
   function hasRatedManager(managerId: string): boolean {
-    return employmentHistory.some((e) => e.managerId === managerId && statusById[e.id]?.hasManagerRating);
+    return myManagerRatingEmploymentHistoryId(managerId) !== undefined;
   }
 
-  return { loading, signedIn, hasRatedCompany, hasRatedManager };
+  return {
+    loading, signedIn, hasRatedCompany, hasRatedManager,
+    myCompanyRatingEmploymentHistoryId, myManagerRatingEmploymentHistoryId,
+  };
 }
