@@ -58,20 +58,18 @@ export function CompaniesClient() {
     return () => { cancelled = true; };
   }, [industry, query]);
 
-  // Syncs the query into the URL (and logs it to search history) after the
-  // user pauses typing — debounced so every keystroke doesn't spam either.
-  useEffect(() => {
+  // Only an explicit Enter press counts as "a search" — syncs the URL (for
+  // the Back-button fix) and logs to search history. Typing itself still
+  // live-filters the grid via the effect above, but isn't recorded.
+  function submitSearch() {
     const trimmed = query.trim();
-    const handle = setTimeout(() => {
-      if (trimmed) {
-        router.replace(`/companies?q=${encodeURIComponent(trimmed)}`);
-        if (signedIn) recordSearch('COMPANY', trimmed);
-      } else {
-        router.replace('/companies');
-      }
-    }, 600);
-    return () => clearTimeout(handle);
-  }, [query, router, signedIn]);
+    if (trimmed) {
+      router.replace(`/companies?q=${encodeURIComponent(trimmed)}`);
+      if (signedIn) recordSearch('COMPANY', trimmed);
+    } else {
+      router.replace('/companies');
+    }
+  }
 
   return (
     <main className={styles.page}>
@@ -104,6 +102,7 @@ export function CompaniesClient() {
               placeholder="Search companies"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') submitSearch(); }}
               className={styles.search}
               aria-label="Search companies"
             />

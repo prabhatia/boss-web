@@ -131,6 +131,8 @@ const row: React.CSSProperties = {
 
 const typeBadge: React.CSSProperties = {
   flexShrink: 0,
+  width: '4.75rem',
+  textAlign: 'center',
   fontSize: '.68rem',
   fontWeight: 700,
   color: 'var(--muted)',
