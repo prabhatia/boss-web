@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api, type CompanySearchResult } from '@/lib/api';
 import { useMyRatingStatus } from '@/lib/useMyRatingStatus';
-import { CompanyRatingsDrawer } from './CompanyRatingsDrawer';
+import { CompanyRatingsDrawer } from '@/components/ratings/CompanyRatingsDrawer';
 import styles from './companies.module.css';
 
 interface Page<T> { content: T[]; totalElements: number; }
@@ -14,7 +14,7 @@ const ANY_INDUSTRY = 'All';
 
 export function CompaniesClient() {
   const router = useRouter();
-  const { signedIn, hasRatedCompany, myCompanyRatingEmploymentHistoryId } = useMyRatingStatus();
+  const { signedIn, hasRatedCompany, myCompanyRatingEmploymentHistoryId, myCompanyOverallScore } = useMyRatingStatus();
   const [companies, setCompanies] = useState<CompanySearchResult[]>([]);
   const [industries, setIndustries] = useState<string[]>([]);
   const [industry, setIndustry] = useState(ANY_INDUSTRY);
@@ -146,6 +146,11 @@ export function CompaniesClient() {
                       )}
                     </div>
                   </>
+                ) : hasRatedCompany(c.id) && myCompanyOverallScore(c.id) != null ? (
+                  <div className={styles.scoreRow}>
+                    <span className={styles.scoreBig}>{myCompanyOverallScore(c.id)!.toFixed(1)}</span>
+                    <span className={styles.scoreOutOf}>/ 10 · your rating</span>
+                  </div>
                 ) : (
                   <div className={styles.pending}>
                     Scores appear at 5 reviews · {c.reviewCount} so far

@@ -338,6 +338,9 @@ export interface RatingResponse {
 export interface RatingStatus {
   hasCompanyRating: boolean;
   hasManagerRating: boolean;
+  /** The caller's own wouldRecommend/wouldWorkAgain score for that position — not the aggregate. */
+  companyOverallScore: number | null;
+  managerOverallScore: number | null;
 }
 
 /** One review row inside a CompanyRatingsPanel — mirrors RatingDto.CompanyRatingResponse. */

@@ -3,17 +3,21 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api, ApiError, type CompanyProfileResponse, type ManagerRef } from '@/lib/api';
+import { useMyRatingStatus } from '@/lib/useMyRatingStatus';
+import { CompanyRatingsDrawer } from '@/components/ratings/CompanyRatingsDrawer';
 import { RateCompanyForm } from './RateCompanyForm';
 import { ManagerRatingFlow } from './ManagerRatingFlow';
 import styles from './companyDetail.module.css';
 
 export function CompanyDetailClient({ slug }: { slug: string }) {
   const searchParams = useSearchParams();
+  const { hasRatedCompany, myCompanyRatingEmploymentHistoryId, myCompanyOverallScore } = useMyRatingStatus();
   const [company, setCompany] = useState<CompanyProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const [showRateForm, setShowRateForm] = useState(searchParams.get('rate') === '1');
+  const [showRatingsDrawer, setShowRatingsDrawer] = useState(false);
 
   // Arriving from a specific manager's "Rate this manager" link on /people.
   const rateManagerId = searchParams.get('rateManager');
@@ -78,6 +82,10 @@ export function CompanyDetailClient({ slug }: { slug: string }) {
             </div>
           </div>
 
+          <span style={showScores ? statusBadgePublic : statusBadgePending}>
+            {showScores ? 'Public' : 'Not yet public(not enough reviews)'}
+          </span>
+
           {showScores ? (
             <div className={styles.scoreRow}>
               <div className={styles.scoreBig}>{company.avgOverallScore!.toFixed(1)}<span className={styles.scoreOutOf}>/10</span></div>
@@ -87,6 +95,11 @@ export function CompanyDetailClient({ slug }: { slug: string }) {
                   <span> · {company.avgWouldRecommendScore.toFixed(1)}/10 would recommend</span>
                 )}
               </div>
+            </div>
+          ) : hasRatedCompany(company.id) && myCompanyOverallScore(company.id) != null ? (
+            <div className={styles.scoreRow}>
+              <div className={styles.scoreBig}>{myCompanyOverallScore(company.id)!.toFixed(1)}<span className={styles.scoreOutOf}>/10</span></div>
+              <div className={styles.scoreMeta}>your rating</div>
             </div>
           ) : (
             <div className={styles.pending}>Scores appear at 5 reviews · {company.reviewCount} so far</div>
@@ -99,12 +112,16 @@ export function CompanyDetailClient({ slug }: { slug: string }) {
           <div className={styles.cardHead}>
             <h2 className={styles.cardTitle}>Rate this company</h2>
           </div>
-          {!showRateForm ? (
+          {showRateForm ? (
+            <RateCompanyForm companyId={company.id} />
+          ) : hasRatedCompany(company.id) ? (
+            <button className="btn btn-outline" onClick={() => setShowRatingsDrawer(true)}>
+              See Ratings
+            </button>
+          ) : (
             <button className="btn btn-primary" onClick={() => setShowRateForm(true)}>
               Rate This Company
             </button>
-          ) : (
-            <RateCompanyForm companyId={company.id} />
           )}
         </section>
 
@@ -115,6 +132,32 @@ export function CompanyDetailClient({ slug }: { slug: string }) {
           <ManagerRatingFlow companyId={company.id} initialManager={initialManager} />
         </section>
       </div>
+
+      {showRatingsDrawer && (
+        <CompanyRatingsDrawer
+          companyId={company.id}
+          companyName={company.name}
+          myEmploymentHistoryId={myCompanyRatingEmploymentHistoryId(company.id)}
+          onClose={() => setShowRatingsDrawer(false)}
+          onRateAgain={() => {
+            setShowRatingsDrawer(false);
+            setShowRateForm(true);
+          }}
+        />
+      )}
     </main>
   );
 }
+
+const statusBadge: React.CSSProperties = {
+  display: 'inline-block', fontSize: '.7rem', fontWeight: 700,
+  padding: '.2rem .6rem', borderRadius: 999, marginBottom: '.75rem',
+};
+
+const statusBadgePublic: React.CSSProperties = {
+  ...statusBadge, background: '#ECFDF5', color: 'var(--green)',
+};
+
+const statusBadgePending: React.CSSProperties = {
+  ...statusBadge, background: 'white', color: 'var(--muted)',
+};

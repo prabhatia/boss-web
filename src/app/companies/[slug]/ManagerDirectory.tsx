@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { api, type ManagerDirectoryItem, type ManagerRef } from '@/lib/api';
+import { useMyRatingStatus } from '@/lib/useMyRatingStatus';
+import { ManagerRatingsDrawer } from '@/components/ratings/ManagerRatingsDrawer';
 import { NewManagerForm } from './NewManagerForm';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').concat('#');
@@ -13,6 +15,7 @@ export function ManagerDirectory({
   companyId: string;
   onSelectManager: (ref: ManagerRef) => void;
 }) {
+  const { hasRatedManager, myManagerRatingEmploymentHistoryId, myManagerOverallScore } = useMyRatingStatus();
   const [managers, setManagers] = useState<ManagerDirectoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -21,6 +24,18 @@ export function ManagerDirectory({
   const [retryToken, setRetryToken] = useState(0);
   const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState<string | null>(null);
+  const [ratingsFor, setRatingsFor] = useState<ManagerRef | null>(null);
+
+  // A manager you've already rated opens their ratings first, never the rate
+  // flow directly — "Rate this manager again" inside the drawer is the only
+  // way back into onSelectManager for someone you've already rated.
+  function handleManagerClick(ref: ManagerRef) {
+    if (hasRatedManager(ref.id)) {
+      setRatingsFor(ref);
+    } else {
+      onSelectManager(ref);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -120,16 +135,20 @@ export function ManagerDirectory({
                 {searchMatches.map((m) => (
                   <button
                     key={m.id}
-                    onClick={() => onSelectManager({ id: m.id, displayLabel: m.displayLabel })}
+                    onClick={() => handleManagerClick({ id: m.id, displayLabel: m.displayLabel })}
                     style={managerBtn}
                   >
                     <span style={{ fontWeight: 600 }}>{m.displayLabel}</span>
                     {m.roleTitle && <span style={{ color: 'var(--muted)', fontSize: '.78rem' }}> — {m.roleTitle}</span>}
-                    {m.avgOverallScore != null && (
+                    {m.avgOverallScore != null ? (
                       <span style={{ color: 'var(--primary)', fontSize: '.78rem', marginLeft: '.4rem' }}>
                         {m.avgOverallScore.toFixed(1)}/10 · {m.reviewCount} reviews
                       </span>
-                    )}
+                    ) : hasRatedManager(m.id) && myManagerOverallScore(m.id) != null ? (
+                      <span style={{ color: 'var(--primary)', fontSize: '.78rem', marginLeft: '.4rem' }}>
+                        {myManagerOverallScore(m.id)!.toFixed(1)}/10 · your rating
+                      </span>
+                    ) : null}
                   </button>
                 ))}
               </div>
@@ -148,16 +167,20 @@ export function ManagerDirectory({
                 {managersForLetter.map((m) => (
                   <button
                     key={m.id}
-                    onClick={() => onSelectManager({ id: m.id, displayLabel: m.displayLabel })}
+                    onClick={() => handleManagerClick({ id: m.id, displayLabel: m.displayLabel })}
                     style={managerBtn}
                   >
                     <span style={{ fontWeight: 600 }}>{m.displayLabel}</span>
                     {m.roleTitle && <span style={{ color: 'var(--muted)', fontSize: '.78rem' }}> — {m.roleTitle}</span>}
-                    {m.avgOverallScore != null && (
+                    {m.avgOverallScore != null ? (
                       <span style={{ color: 'var(--primary)', fontSize: '.78rem', marginLeft: '.4rem' }}>
                         {m.avgOverallScore.toFixed(1)}/10 · {m.reviewCount} reviews
                       </span>
-                    )}
+                    ) : hasRatedManager(m.id) && myManagerOverallScore(m.id) != null ? (
+                      <span style={{ color: 'var(--primary)', fontSize: '.78rem', marginLeft: '.4rem' }}>
+                        {myManagerOverallScore(m.id)!.toFixed(1)}/10 · your rating
+                      </span>
+                    ) : null}
                   </button>
                 ))}
               </div>
@@ -175,6 +198,20 @@ export function ManagerDirectory({
           </>
         )}
       </div>
+
+      {ratingsFor && (
+        <ManagerRatingsDrawer
+          managerId={ratingsFor.id}
+          managerName={ratingsFor.displayLabel}
+          myEmploymentHistoryId={myManagerRatingEmploymentHistoryId(ratingsFor.id)}
+          onClose={() => setRatingsFor(null)}
+          onRateAgain={() => {
+            const ref = ratingsFor;
+            setRatingsFor(null);
+            onSelectManager(ref);
+          }}
+        />
+      )}
     </div>
   );
 }

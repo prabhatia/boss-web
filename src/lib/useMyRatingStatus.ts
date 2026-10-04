@@ -67,8 +67,21 @@ export function useMyRatingStatus() {
     return myManagerRatingEmploymentHistoryId(managerId) !== undefined;
   }
 
+  /** The caller's own wouldRecommend score for this company, if they've rated it — not the aggregate. */
+  function myCompanyOverallScore(companyId: string): number | undefined {
+    const empHistId = myCompanyRatingEmploymentHistoryId(companyId);
+    return empHistId ? statusById[empHistId]?.companyOverallScore ?? undefined : undefined;
+  }
+
+  /** The caller's own wouldWorkAgain score for this manager, if they've rated them — not the aggregate. */
+  function myManagerOverallScore(managerId: string): number | undefined {
+    const empHistId = myManagerRatingEmploymentHistoryId(managerId);
+    return empHistId ? statusById[empHistId]?.managerOverallScore ?? undefined : undefined;
+  }
+
   return {
     loading, signedIn, hasRatedCompany, hasRatedManager,
     myCompanyRatingEmploymentHistoryId, myManagerRatingEmploymentHistoryId,
+    myCompanyOverallScore, myManagerOverallScore,
   };
 }

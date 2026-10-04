@@ -19,12 +19,15 @@ export function ManagerRatingsDrawer({
   managerName,
   myEmploymentHistoryId,
   onClose,
+  onRateAgain,
 }: {
   managerId: string;
   managerName: string;
   /** This viewer's own employment period under this manager, if any — lets us show their rating regardless of public status. */
   myEmploymentHistoryId?: string;
   onClose: () => void;
+  /** When provided, shows a "Rate this manager again" action next to the viewer's own rating. */
+  onRateAgain?: () => void;
 }) {
   const [panel, setPanel] = useState<ManagerRatingsPanel | null>(null);
   const [myReview, setMyReview] = useState<ManagerReviewResponse | null>(null);
@@ -112,7 +115,12 @@ export function ManagerRatingsDrawer({
 
               {myReview && (
                 <>
-                  <p style={sectionLabel}>Your rating for this person</p>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.6rem' }}>
+                    <p style={{ ...sectionLabel, marginBottom: 0 }}>Your rating for this person</p>
+                    {onRateAgain && (
+                      <button onClick={onRateAgain} style={rateAgainLink}>Rate this manager again</button>
+                    )}
+                  </div>
                   <div style={{ marginBottom: '1.25rem' }}>
                     <ReviewCard review={myReview} />
                   </div>
@@ -241,6 +249,12 @@ const statValue: React.CSSProperties = { fontSize: '1.05rem', fontWeight: 800, c
 
 const sectionLabel: React.CSSProperties = {
   fontSize: '.78rem', fontWeight: 700, color: 'var(--ink)', marginBottom: '.6rem',
+};
+
+const rateAgainLink: React.CSSProperties = {
+  border: 'none', background: 'none', padding: 0, fontFamily: 'inherit',
+  fontSize: '.75rem', fontWeight: 700, color: 'var(--primary)',
+  textDecoration: 'underline', cursor: 'pointer',
 };
 
 const reviewCard: React.CSSProperties = {
