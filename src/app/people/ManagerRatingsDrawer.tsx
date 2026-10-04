@@ -103,10 +103,10 @@ export function ManagerRatingsDrawer({
                 </>
               )}
 
-              {!isPublic && !myReview && (
+              {!isPublic && !myReview && panel && (
                 <p style={muted}>
                   Ratings appear here once this manager has 3 or more approved reviews
-                  {panel ? ` · ${panel.reviewCount} so far` : ''}.
+                  {` · ${panel.reviewCount} so far`}.
                 </p>
               )}
 
@@ -119,20 +119,20 @@ export function ManagerRatingsDrawer({
                 </>
               )}
 
-              {isPublic && (
+              {isPublic && panel && (
                 <>
                   <p style={sectionLabel}>{myReview ? 'Other reviews' : 'Latest reviews'}</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
                     {othersReviews.map((r) => <ReviewCard key={r.id} review={r} />)}
 
-                    {Array.from({ length: Math.min(panel!.lockedCount, 2) }).map((_, i) => (
+                    {Array.from({ length: Math.min(panel.lockedCount, 2) }).map((_, i) => (
                       <LockedReviewCard key={i} />
                     ))}
                   </div>
 
-                  {panel!.lockedCount > 0 && (
+                  {panel.lockedCount > 0 && (
                     <p style={{ ...muted, marginTop: '.75rem', textAlign: 'center' }}>
-                      {panel!.lockedCount} more review{panel!.lockedCount === 1 ? '' : 's'} — unlock for 20 tokens or by card (coming soon)
+                      {panel.lockedCount} more review{panel.lockedCount === 1 ? '' : 's'} — unlock for 20 tokens or by card (coming soon)
                     </p>
                   )}
                 </>
@@ -180,12 +180,12 @@ function LockedReviewCard() {
 }
 
 const backdrop: React.CSSProperties = {
-  position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, .4)', zIndex: 40,
+  position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, .4)', zIndex: 60,
 };
 
 const drawer: React.CSSProperties = {
   position: 'fixed', top: 0, right: 0, height: '100vh', width: '60vw', minWidth: 320, maxWidth: '100vw',
-  background: 'white', zIndex: 41, display: 'flex', flexDirection: 'column',
+  background: 'white', zIndex: 61, display: 'flex', flexDirection: 'column',
   boxShadow: '-8px 0 24px rgba(15, 23, 42, .18)',
 };
 

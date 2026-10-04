@@ -228,48 +228,62 @@ function PeopleList({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
-      {results.map((p) => (
-        <Link key={p.id} href={`/companies/${p.companySlug}`} style={personRow}>
-          <div>
-            <div style={personName}>{p.displayLabel}</div>
-            <div style={personMeta}>
-              {p.roleTitle ? `${p.roleTitle} · ` : ''}{p.companyName}
+      {results.map((p) => {
+        // reviewCount is only synced nightly by the scheduler, so a rating
+        // submitted today can still read 0 here even though it exists —
+        // don't contradict what the viewer knows they just did.
+        const effectiveReviewCount = Math.max(p.reviewCount, hasRatedManager(p.id) ? 1 : 0);
+
+        return (
+          <div
+            key={p.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => setRatingsFor(p)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setRatingsFor(p); }}
+            style={{ ...personRow, cursor: 'pointer' }}
+          >
+            <div>
+              <div style={personName}>{p.displayLabel}</div>
+              <div style={personMeta}>
+                {p.roleTitle ? `${p.roleTitle} · ` : ''}
+                <Link
+                  href={`/companies/${p.companySlug}`}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ color: 'inherit', textDecoration: 'underline' }}
+                >
+                  {p.companyName}
+                </Link>
+              </div>
+            </div>
+            <div style={{ flexShrink: 0, textAlign: 'right' }}>
+              {p.avgOverallScore != null ? (
+                <>
+                  <div style={personScoreVal}>{p.avgOverallScore.toFixed(1)}/10</div>
+                  <div style={personScoreLbl}>{effectiveReviewCount} review{effectiveReviewCount === 1 ? '' : 's'}</div>
+                </>
+              ) : (
+                <div style={personPending}>
+                  Scores appear at 3 reviews · {effectiveReviewCount} so far
+                </div>
+              )}
+              {signedIn && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/companies/${p.companySlug}?rateManager=${p.id}&rateManagerName=${encodeURIComponent(p.displayLabel)}`);
+                  }}
+                  style={seeRatingsLink}
+                >
+                  {hasRatedManager(p.id)
+                    ? <>You have rated already. <span style={{ textDecoration: 'underline' }}>Modify rating</span></>
+                    : 'Rate this manager'}
+                </button>
+              )}
             </div>
           </div>
-          <div style={{ flexShrink: 0, textAlign: 'right' }}>
-            {p.avgOverallScore != null ? (
-              <>
-                <div style={personScoreVal}>{p.avgOverallScore.toFixed(1)}/10</div>
-                <div style={personScoreLbl}>{p.reviewCount} reviews</div>
-              </>
-            ) : (
-              <div style={personPending}>Scores appear at 3 reviews · {p.reviewCount} so far</div>
-            )}
-            {(p.avgOverallScore != null || hasRatedManager(p.id)) && (
-              <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRatingsFor(p); }}
-                style={seeRatingsLink}
-              >
-                See Ratings
-              </button>
-            )}
-            {signedIn && (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  router.push(`/companies/${p.companySlug}?rateManager=${p.id}&rateManagerName=${encodeURIComponent(p.displayLabel)}`);
-                }}
-                style={seeRatingsLink}
-              >
-                {hasRatedManager(p.id)
-                  ? <>You have rated already. <span style={{ textDecoration: 'underline' }}>Modify rating</span></>
-                  : 'Rate this manager'}
-              </button>
-            )}
-          </div>
-        </Link>
-      ))}
+        );
+      })}
 
       {ratingsFor && (
         <ManagerRatingsDrawer
@@ -410,6 +424,7 @@ const personScoreLbl: React.CSSProperties = {
 
 const seeRatingsLink: React.CSSProperties = {
   display: 'block',
+  width: '100%',
   marginTop: '.3rem',
   border: 'none',
   background: 'none',
@@ -418,6 +433,8 @@ const seeRatingsLink: React.CSSProperties = {
   fontWeight: 700,
   color: 'var(--primary)',
   textDecoration: 'underline',
+  textAlign: 'right',
+  whiteSpace: 'nowrap',
   cursor: 'pointer',
   fontFamily: 'inherit',
 };
@@ -427,5 +444,6 @@ const personPending: React.CSSProperties = {
   fontSize: '.72rem',
   color: 'var(--muted)',
   textAlign: 'right',
-  maxWidth: 130,
+  whiteSpace: 'nowrap',
+  marginBottom: '.3rem',
 };

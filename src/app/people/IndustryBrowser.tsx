@@ -155,38 +155,47 @@ export function IndustryBrowser({ industry }: { industry: string }) {
                   </button>
                   {expandedManagerLetter === letter && (
                     <div style={nestedList}>
-                      {group.map((m) => (
-                        <div key={m.id} style={managerRow}>
-                          <span style={{ fontWeight: 600 }}>{m.displayLabel}</span>
-                          {m.roleTitle && <span style={{ color: 'var(--muted)', fontSize: '.78rem' }}> — {m.roleTitle}</span>}
-                          {m.avgOverallScore != null ? (
-                            <span style={{ color: 'var(--primary)', fontSize: '.78rem', marginLeft: '.4rem' }}>
-                              {m.avgOverallScore.toFixed(1)}/10 · {m.reviewCount} reviews
-                            </span>
-                          ) : (
-                            <span style={{ color: 'var(--muted)', fontSize: '.72rem', marginLeft: '.4rem' }}>
-                              Scores appear at 3 reviews · {m.reviewCount} so far
-                            </span>
-                          )}
-                          {(m.avgOverallScore != null || hasRatedManager(m.id)) && (
-                            <button onClick={() => setRatingsFor(m)} style={seeRatingsLink}>
-                              See Ratings
-                            </button>
-                          )}
-                          {signedIn && selectedCompany && (
-                            <button
-                              onClick={() => router.push(
-                                `/companies/${selectedCompany.slug}?rateManager=${m.id}&rateManagerName=${encodeURIComponent(m.displayLabel)}`
-                              )}
-                              style={seeRatingsLink}
-                            >
-                              {hasRatedManager(m.id)
-                                ? <>You have rated already. <span style={{ textDecoration: 'underline' }}>Modify rating</span></>
-                                : 'Rate this manager'}
-                            </button>
-                          )}
-                        </div>
-                      ))}
+                      {group.map((m) => {
+                        // reviewCount is only synced nightly, so a rating submitted
+                        // today can still read 0 even though it exists — don't
+                        // contradict what the viewer knows they just did.
+                        const effectiveReviewCount = Math.max(m.reviewCount, hasRatedManager(m.id) ? 1 : 0);
+                        return (
+                          <div
+                            key={m.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setRatingsFor(m)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setRatingsFor(m); }}
+                            style={{ ...managerRow, cursor: 'pointer' }}
+                          >
+                            <span style={{ fontWeight: 600 }}>{m.displayLabel}</span>
+                            {m.roleTitle && <span style={{ color: 'var(--muted)', fontSize: '.78rem' }}> — {m.roleTitle}</span>}
+                            {m.avgOverallScore != null ? (
+                              <span style={{ color: 'var(--primary)', fontSize: '.78rem', marginLeft: '.4rem' }}>
+                                {m.avgOverallScore.toFixed(1)}/10 · {effectiveReviewCount} review{effectiveReviewCount === 1 ? '' : 's'}
+                              </span>
+                            ) : (
+                              <span style={{ color: 'var(--muted)', fontSize: '.72rem', marginLeft: '.4rem' }}>
+                                Scores appear at 3 reviews · {effectiveReviewCount} so far
+                              </span>
+                            )}
+                            {signedIn && selectedCompany && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/companies/${selectedCompany.slug}?rateManager=${m.id}&rateManagerName=${encodeURIComponent(m.displayLabel)}`);
+                                }}
+                                style={seeRatingsLink}
+                              >
+                                {hasRatedManager(m.id)
+                                  ? <>You have rated already. <span style={{ textDecoration: 'underline' }}>Modify rating</span></>
+                                  : 'Rate this manager'}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
