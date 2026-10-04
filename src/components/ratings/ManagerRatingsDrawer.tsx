@@ -219,7 +219,7 @@ const backdrop: React.CSSProperties = {
 };
 
 const drawer: React.CSSProperties = {
-  position: 'fixed', top: 0, right: 0, height: '100vh', width: '60vw', minWidth: 320, maxWidth: '100vw',
+  position: 'fixed', top: 0, right: 0, height: '100vh', width: '70vw', minWidth: 320, maxWidth: '100vw',
   background: 'white', zIndex: 61, display: 'flex', flexDirection: 'column',
   boxShadow: '-8px 0 24px rgba(15, 23, 42, .18)',
 };
