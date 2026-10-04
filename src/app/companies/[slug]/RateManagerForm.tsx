@@ -1,11 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import { api, ApiError, type SubmitManagerRatingRequest } from '@/lib/api';
+import { useEffect, useState } from 'react';
+import { api, ApiError, type ManagerReviewResponse, type SubmitManagerRatingRequest } from '@/lib/api';
 import { RatingMetricsForm, EMPTY_EXTRA_FIELDS, type RatingExtraFields } from '@/components/ratings/RatingMetricsForm';
 import { defaultMetricValues, DEFAULT_WOULD_SCORE, type MetricKey, type MetricValue, type MetricValues } from '@/components/ratings/metrics';
 
 type State = 'ready' | 'submitting' | 'done';
+
+function valuesFromExisting(rating: ManagerReviewResponse): MetricValues {
+  return {
+    workLifeBalance: { score: rating.workLifeBalance.score, comment: rating.workLifeBalance.comment ?? '' },
+    managementEmpathy: { score: rating.managementEmpathy.score, comment: rating.managementEmpathy.comment ?? '' },
+    advancementOpportunity: { score: rating.advancementOpportunity.score, comment: rating.advancementOpportunity.comment ?? '' },
+  } as MetricValues;
+}
 
 export function RateManagerForm({
   companyId,
@@ -29,6 +37,32 @@ export function RateManagerForm({
     roleTitle: initialRoleTitle ?? '',
   }));
   const [error, setError] = useState<string | null>(null);
+
+  // Pre-fills the form with the caller's own previous rating of this manager
+  // for this position, if one exists — covers "rate this manager again".
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const existing = await api.get<ManagerReviewResponse>(
+          'company', `/ratings/manager/mine?employmentHistoryId=${employmentHistoryId}`
+        );
+        if (cancelled) return;
+        setValues(valuesFromExisting(existing));
+        setWouldScore(existing.wouldWorkAgainScore);
+        setExtra({
+          roleTitle: existing.roleTitle ?? initialRoleTitle ?? '',
+          employmentType: existing.employmentType ?? '',
+          stillEmployed: existing.stillEmployed == null ? '' : existing.stillEmployed ? 'true' : 'false',
+          yearsAtCompany: existing.yearsAtCompany != null ? String(existing.yearsAtCompany) : '',
+          overallReviewText: existing.overallReviewText ?? '',
+        });
+      } catch {
+        // No prior rating for this position (404) — keep the blank defaults.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [employmentHistoryId, initialRoleTitle]);
 
   function updateMetric(key: MetricKey, patch: Partial<MetricValue>) {
     setValues((v) => ({ ...v, [key]: { ...v[key], ...patch } }));
