@@ -155,23 +155,52 @@ export function CompanyRatingsDrawer({
   );
 }
 
+const REVIEW_METRICS: { key: 'workLifeBalance' | 'managementEmpathy' | 'advancementOpportunity' | 'benefits' | 'upperManagementEthos'; label: string }[] = [
+  { key: 'workLifeBalance', label: 'Work-life balance' },
+  { key: 'managementEmpathy', label: 'Management empathy' },
+  { key: 'advancementOpportunity', label: 'Advancement opportunity' },
+  { key: 'benefits', label: 'Benefits' },
+  { key: 'upperManagementEthos', label: 'Upper management ethos' },
+];
+
 function ReviewCard({ review }: { review: CompanyReviewResponse }) {
   return (
     <div style={reviewCard}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '.5rem', marginBottom: '.35rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '.5rem', marginBottom: '.6rem' }}>
         <span style={{ fontSize: '.8rem', fontWeight: 700, color: 'var(--ink)' }}>
           {review.roleTitle ?? 'Anonymous employee'}
         </span>
         <span style={{ fontSize: '.72rem', color: 'var(--muted)' }}>{formatDate(review.createdAt)}</span>
       </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem', marginBottom: '.6rem' }}>
+        {REVIEW_METRICS.map(({ key, label }) => {
+          const metric = review[key];
+          return (
+            <div key={key}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.78rem' }}>
+                <span style={{ color: 'var(--muted)' }}>{label}</span>
+                <span style={{ fontWeight: 700, color: 'var(--ink)' }}>{metric.score.toFixed(1)}/10</span>
+              </div>
+              {metric.comment && (
+                <p style={{ fontSize: '.78rem', color: 'var(--body)', lineHeight: 1.4, marginTop: '.15rem' }}>
+                  {metric.comment}
+                </p>
+              )}
+            </div>
+          );
+        })}
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.78rem', paddingTop: '.4rem', borderTop: '1px solid var(--border)' }}>
+          <span style={{ color: 'var(--muted)' }}>Would recommend</span>
+          <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{review.wouldRecommendScore.toFixed(1)}/10</span>
+        </div>
+      </div>
+
       {review.overallReviewText && (
-        <p style={{ fontSize: '.82rem', color: 'var(--body)', lineHeight: 1.5, marginBottom: '.4rem' }}>
+        <p style={{ fontSize: '.82rem', color: 'var(--body)', lineHeight: 1.5 }}>
           {review.overallReviewText}
         </p>
       )}
-      <div style={{ fontSize: '.72rem', color: 'var(--primary)', fontWeight: 600 }}>
-        {review.wouldRecommendScore.toFixed(1)}/10 would recommend
-      </div>
     </div>
   );
 }
