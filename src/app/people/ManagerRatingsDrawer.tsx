@@ -76,7 +76,7 @@ export function ManagerRatingsDrawer({
           ) : (
             <>
               <span style={isPublic ? statusBadgePublic : statusBadgePending}>
-                {isPublic ? 'Public' : 'Not yet public (not enough reviews)'}
+                {isPublic ? 'Public' : 'Not yet public(not enough reviews)'}
               </span>
 
               {isPublic && panel && (

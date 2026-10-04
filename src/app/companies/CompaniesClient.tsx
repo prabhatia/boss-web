@@ -128,7 +128,7 @@ export function CompaniesClient() {
                 </div>
 
                 <span className={c.avgOverallScore != null ? styles.statusBadgePublic : styles.statusBadgePending}>
-                  {c.avgOverallScore != null ? 'Public' : 'Not yet public (not enough reviews)'}
+                  {c.avgOverallScore != null ? 'Public' : 'Not yet public(not enough reviews)'}
                 </span>
 
                 {c.avgOverallScore != null ? (
