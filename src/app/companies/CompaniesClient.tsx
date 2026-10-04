@@ -196,9 +196,7 @@ export function CompaniesClient() {
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/companies/${c.slug}?rate=1`); }}
                     className={styles.rateLink}
                   >
-                    {hasRatedCompany(c.id)
-                      ? <>You have rated this company already. <span style={{ textDecoration: 'underline' }}>Modify rating</span></>
-                      : 'Rate this company'}
+                    {hasRatedCompany(c.id) ? 'Modify rating' : 'Rate this company'}
                   </button>
                 )}
               </Link>
