@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api, type CompanySearchResult, type ManagerDirectoryItem } from '@/lib/api';
 import { useMyRatingStatus } from '@/lib/useMyRatingStatus';
-import { ManagerRatingsDrawer } from './ManagerRatingsDrawer';
+import { ManagerRatingsDrawer } from '@/components/ratings/ManagerRatingsDrawer';
 
 interface Page<T> { content: T[]; totalElements: number; }
 
@@ -27,7 +27,7 @@ function groupByLetter<T>(items: T[], letterOf: (item: T) => string): Map<string
 
 export function IndustryBrowser({ industry }: { industry: string }) {
   const router = useRouter();
-  const { signedIn, hasRatedManager, myManagerRatingEmploymentHistoryId } = useMyRatingStatus();
+  const { signedIn, hasRatedManager, myManagerRatingEmploymentHistoryId, myManagerOverallScore } = useMyRatingStatus();
   const [companies, setCompanies] = useState<CompanySearchResult[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
   const [companiesError, setCompaniesError] = useState(false);
@@ -174,6 +174,10 @@ export function IndustryBrowser({ industry }: { industry: string }) {
                             {m.avgOverallScore != null ? (
                               <span style={{ color: 'var(--primary)', fontSize: '.78rem', marginLeft: '.4rem' }}>
                                 {m.avgOverallScore.toFixed(1)}/10 · {effectiveReviewCount} review{effectiveReviewCount === 1 ? '' : 's'}
+                              </span>
+                            ) : hasRatedManager(m.id) && myManagerOverallScore(m.id) != null ? (
+                              <span style={{ color: 'var(--primary)', fontSize: '.78rem', marginLeft: '.4rem' }}>
+                                {myManagerOverallScore(m.id)!.toFixed(1)}/10 · your rating
                               </span>
                             ) : (
                               <span style={{ color: 'var(--muted)', fontSize: '.72rem', marginLeft: '.4rem' }}>

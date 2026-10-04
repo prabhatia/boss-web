@@ -6,14 +6,14 @@ import { useRouter } from 'next/navigation';
 import { api, type PersonSearchResult } from '@/lib/api';
 import { useMyRatingStatus } from '@/lib/useMyRatingStatus';
 import { IndustryBrowser } from './IndustryBrowser';
-import { ManagerRatingsDrawer } from './ManagerRatingsDrawer';
+import { ManagerRatingsDrawer } from '@/components/ratings/ManagerRatingsDrawer';
 import styles from './people.module.css';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').concat('#');
 const ANY_INDUSTRY = 'Any';
 
 export function PeopleClient() {
-  const { signedIn, hasRatedManager, myManagerRatingEmploymentHistoryId } = useMyRatingStatus();
+  const { signedIn, hasRatedManager, myManagerRatingEmploymentHistoryId, myManagerOverallScore } = useMyRatingStatus();
   const [people, setPeople] = useState<PersonSearchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -184,7 +184,7 @@ export function PeopleClient() {
                       </p>
                       <button onClick={clearSearch} style={clearLink}>Clear search</button>
                     </div>
-                    <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} myManagerRatingEmploymentHistoryId={myManagerRatingEmploymentHistoryId} />
+                    <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} myManagerRatingEmploymentHistoryId={myManagerRatingEmploymentHistoryId} myManagerOverallScore={myManagerOverallScore} />
                   </>
                 ) : companyFilter ? (
                   <>
@@ -194,12 +194,12 @@ export function PeopleClient() {
                       </p>
                       <button onClick={() => setCompanyFilter('')} style={clearLink}>Clear</button>
                     </div>
-                    <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} myManagerRatingEmploymentHistoryId={myManagerRatingEmploymentHistoryId} />
+                    <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} myManagerRatingEmploymentHistoryId={myManagerRatingEmploymentHistoryId} myManagerOverallScore={myManagerOverallScore} />
                   </>
                 ) : !selectedLetter ? (
                   <p style={muted}>Pick a letter to browse people, search by name, or select a company above.</p>
                 ) : results.length > 0 ? (
-                  <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} myManagerRatingEmploymentHistoryId={myManagerRatingEmploymentHistoryId} />
+                  <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} myManagerRatingEmploymentHistoryId={myManagerRatingEmploymentHistoryId} myManagerOverallScore={myManagerOverallScore} />
                 ) : (
                   <p style={muted}>No one under &ldquo;{selectedLetter}&rdquo; yet.</p>
                 )}
@@ -217,11 +217,13 @@ function PeopleList({
   signedIn,
   hasRatedManager,
   myManagerRatingEmploymentHistoryId,
+  myManagerOverallScore,
 }: {
   results: PersonSearchResult[];
   signedIn: boolean;
   hasRatedManager: (managerId: string) => boolean;
   myManagerRatingEmploymentHistoryId: (managerId: string) => string | undefined;
+  myManagerOverallScore: (managerId: string) => number | undefined;
 }) {
   const router = useRouter();
   const [ratingsFor, setRatingsFor] = useState<PersonSearchResult | null>(null);
@@ -261,6 +263,11 @@ function PeopleList({
                 <>
                   <div style={personScoreVal}>{p.avgOverallScore.toFixed(1)}/10</div>
                   <div style={personScoreLbl}>{effectiveReviewCount} review{effectiveReviewCount === 1 ? '' : 's'}</div>
+                </>
+              ) : hasRatedManager(p.id) && myManagerOverallScore(p.id) != null ? (
+                <>
+                  <div style={personScoreVal}>{myManagerOverallScore(p.id)!.toFixed(1)}/10</div>
+                  <div style={personScoreLbl}>your rating</div>
                 </>
               ) : (
                 <div style={personPending}>
