@@ -54,18 +54,19 @@
   font-size: .78rem; color: var(--muted);
 }
 .recommend { color: var(--green); font-weight: 600; }
-.seeRatings {
-  display: block; width: 100%; margin-top: .6rem; padding: .45rem 0;
-  border: 1px solid var(--border); border-radius: 8px; background: white;
-  font-size: .78rem; font-weight: 700; color: var(--primary);
-  cursor: pointer; font-family: inherit;
+.actionsRow {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: .6rem;
 }
-.seeRatings:hover { border-color: var(--primary-ring); }
+.seeRatings {
+  padding: 0; border: none; background: none;
+  font-size: .76rem; font-weight: 700; color: var(--primary);
+  text-decoration: underline; cursor: pointer; font-family: inherit;
+}
 .rateLink {
-  display: block; width: 100%; margin-top: .45rem; padding: 0;
-  border: none; background: none;
-  font-size: .74rem; font-weight: 600; color: var(--primary);
-  text-align: left; cursor: pointer; font-family: inherit; line-height: 1.4;
+  padding: 0; border: none; background: none;
+  font-size: .76rem; font-weight: 700; color: var(--primary);
+  text-decoration: underline; cursor: pointer; font-family: inherit;
 }
 .pending {
   font-size: .8rem; color: var(--muted); background: var(--bg);

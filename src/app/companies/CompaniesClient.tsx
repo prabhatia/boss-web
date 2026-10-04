@@ -182,23 +182,25 @@ export function CompaniesClient() {
                   </div>
                 )}
 
-                {(c.avgOverallScore != null || hasRatedCompany(c.id)) && (
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRatingsFor(c); }}
-                    className={styles.seeRatings}
-                  >
-                    See Ratings
-                  </button>
-                )}
+                <div className={styles.actionsRow}>
+                  {(c.avgOverallScore != null || hasRatedCompany(c.id)) ? (
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRatingsFor(c); }}
+                      className={styles.seeRatings}
+                    >
+                      See Ratings
+                    </button>
+                  ) : <span />}
 
-                {signedIn && (
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/companies/${c.slug}?rate=1`); }}
-                    className={styles.rateLink}
-                  >
-                    {hasRatedCompany(c.id) ? 'Modify rating' : 'Rate this company'}
-                  </button>
-                )}
+                  {signedIn && (
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/companies/${c.slug}?rate=1`); }}
+                      className={styles.rateLink}
+                    >
+                      {hasRatedCompany(c.id) ? 'Modify rating' : 'Rate this company'}
+                    </button>
+                  )}
+                </div>
               </Link>
             ))}
           </div>
