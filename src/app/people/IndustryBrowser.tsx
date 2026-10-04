@@ -190,11 +190,10 @@ export function IndustryBrowser({ industry }: { industry: string }) {
                                   e.stopPropagation();
                                   router.push(`/companies/${selectedCompany.slug}?rateManager=${m.id}&rateManagerName=${encodeURIComponent(m.displayLabel)}`);
                                 }}
-                                style={seeRatingsLink}
+                                className="btn btn-outline"
+                                style={{ marginLeft: '.4rem', fontSize: '.72rem', padding: '.3rem .6rem' }}
                               >
-                                {hasRatedManager(m.id)
-                                  ? <>You have rated already. <span style={{ textDecoration: 'underline' }}>Modify rating</span></>
-                                  : 'Rate this manager'}
+                                {hasRatedManager(m.id) ? 'Modify rating' : 'Rate this manager'}
                               </button>
                             )}
                           </div>
@@ -223,20 +222,6 @@ export function IndustryBrowser({ industry }: { industry: string }) {
 
 const muted: React.CSSProperties = { fontSize: '.85rem', color: 'var(--muted)' };
 
-const seeRatingsLink: React.CSSProperties = {
-  display: 'block',
-  marginTop: '.25rem',
-  marginLeft: '.4rem',
-  border: 'none',
-  background: 'none',
-  padding: 0,
-  fontSize: '.72rem',
-  fontWeight: 700,
-  color: 'var(--primary)',
-  textDecoration: 'underline',
-  cursor: 'pointer',
-  fontFamily: 'inherit',
-};
 
 const colLabel: React.CSSProperties = {
   fontSize: '.78rem',

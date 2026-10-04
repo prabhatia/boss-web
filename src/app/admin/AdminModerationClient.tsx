@@ -152,7 +152,8 @@ export function AdminModerationClient({ isSuperAdmin }: { isSuperAdmin: boolean 
             {!showAllRatings && (
               <button
                 onClick={() => setShowAllRatings(true)}
-                style={{ border: 'none', background: 'none', padding: 0, fontSize: '.85rem', fontWeight: 600, color: 'var(--primary)', textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}
+                className="btn btn-outline"
+                style={{ fontSize: '.85rem' }}
               >
                 View All Ratings
               </button>
