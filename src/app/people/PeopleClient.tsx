@@ -297,11 +297,10 @@ function PeopleList({
                     e.stopPropagation();
                     router.push(`/companies/${p.companySlug}?rateManager=${p.id}&rateManagerName=${encodeURIComponent(p.displayLabel)}`);
                   }}
-                  style={seeRatingsLink}
+                  className="btn btn-outline"
+                  style={{ marginTop: '.4rem', fontSize: '.72rem', padding: '.3rem .6rem' }}
                 >
-                  {hasRatedManager(p.id)
-                    ? <>You have rated already. <span style={{ textDecoration: 'underline' }}>Modify rating</span></>
-                    : 'Rate this manager'}
+                  {hasRatedManager(p.id) ? 'Modify rating' : 'Rate this manager'}
                 </button>
               )}
             </div>
@@ -446,22 +445,6 @@ const personScoreLbl: React.CSSProperties = {
   color: 'var(--muted)',
 };
 
-const seeRatingsLink: React.CSSProperties = {
-  display: 'block',
-  width: '100%',
-  marginTop: '.3rem',
-  border: 'none',
-  background: 'none',
-  padding: 0,
-  fontSize: '.72rem',
-  fontWeight: 700,
-  color: 'var(--primary)',
-  textDecoration: 'underline',
-  textAlign: 'right',
-  whiteSpace: 'nowrap',
-  cursor: 'pointer',
-  fontFamily: 'inherit',
-};
 
 const personPending: React.CSSProperties = {
   flexShrink: 0,
