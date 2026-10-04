@@ -56,6 +56,21 @@ export function AdminModerationClient({ isSuperAdmin }: { isSuperAdmin: boolean 
   const [audit, setAudit] = useState<AuditHistory | null>(null);
   const [reasonDrafts, setReasonDrafts] = useState<Record<string, string>>({});
   const [showAllRatings, setShowAllRatings] = useState(false);
+  const [importingJobs, setImportingJobs] = useState(false);
+  const [jobsImportResult, setJobsImportResult] = useState<string | null>(null);
+
+  async function runJobsImport() {
+    setImportingJobs(true);
+    setJobsImportResult(null);
+    try {
+      await api.post('jobs', '/admin/jobs/external/import');
+      setJobsImportResult('Import complete.');
+    } catch (e) {
+      setJobsImportResult(e instanceof ApiError ? e.message : 'Import failed. Please try again.');
+    } finally {
+      setImportingJobs(false);
+    }
+  }
 
   async function loadSummary() {
     try {
@@ -122,16 +137,27 @@ export function AdminModerationClient({ isSuperAdmin }: { isSuperAdmin: boolean 
       </header>
 
       <div className={styles.container}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '.75rem' }}>
           <h1 className={styles.title}>Moderation</h1>
-          {!showAllRatings && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+            {jobsImportResult && <span className={styles.muted}>{jobsImportResult}</span>}
             <button
-              onClick={() => setShowAllRatings(true)}
-              style={{ border: 'none', background: 'none', padding: 0, fontSize: '.85rem', fontWeight: 600, color: 'var(--primary)', textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}
+              onClick={runJobsImport}
+              disabled={importingJobs}
+              className="btn btn-outline"
+              style={{ fontSize: '.85rem' }}
             >
-              View All Ratings
+              {importingJobs ? 'Importing jobs…' : 'Import external jobs'}
             </button>
-          )}
+            {!showAllRatings && (
+              <button
+                onClick={() => setShowAllRatings(true)}
+                style={{ border: 'none', background: 'none', padding: 0, fontSize: '.85rem', fontWeight: 600, color: 'var(--primary)', textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                View All Ratings
+              </button>
+            )}
+          </div>
         </div>
 
         {showAllRatings ? (
