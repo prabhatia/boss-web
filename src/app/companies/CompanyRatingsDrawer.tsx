@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api, type CompanyRatingsPanel, type CompanyReviewResponse } from '@/lib/api';
+import { api, ApiError, type CompanyRatingsPanel, type CompanyReviewResponse } from '@/lib/api';
 
 const CATEGORY_LABELS: { key: keyof CompanyRatingsPanel; label: string }[] = [
   { key: 'avgWorkLifeBalanceScore', label: 'Work-life balance' },
@@ -19,13 +19,17 @@ function formatDate(iso: string): string {
 export function CompanyRatingsDrawer({
   companyId,
   companyName,
+  myEmploymentHistoryId,
   onClose,
 }: {
   companyId: string;
   companyName: string;
+  /** This viewer's own employment period at this company, if any — lets us show their rating regardless of public status. */
+  myEmploymentHistoryId?: string;
   onClose: () => void;
 }) {
   const [panel, setPanel] = useState<CompanyRatingsPanel | null>(null);
+  const [myReview, setMyReview] = useState<CompanyReviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -35,8 +39,16 @@ export function CompanyRatingsDrawer({
     setError(false);
     (async () => {
       try {
-        const res = await api.get<CompanyRatingsPanel>('company', `/ratings/company/${companyId}/panel`);
-        if (!cancelled) setPanel(res);
+        const [res, mine] = await Promise.all([
+          api.get<CompanyRatingsPanel>('company', `/ratings/company/${companyId}/panel`),
+          myEmploymentHistoryId
+            ? api.get<CompanyReviewResponse>('company', `/ratings/company/mine?employmentHistoryId=${myEmploymentHistoryId}`)
+                .catch((e) => { if (e instanceof ApiError && e.status === 404) return null; throw e; })
+            : Promise.resolve(null),
+        ]);
+        if (cancelled) return;
+        setPanel(res);
+        setMyReview(mine);
       } catch {
         if (!cancelled) setError(true);
       } finally {
@@ -44,7 +56,10 @@ export function CompanyRatingsDrawer({
       }
     })();
     return () => { cancelled = true; };
-  }, [companyId]);
+  }, [companyId, myEmploymentHistoryId]);
+
+  const isPublic = panel != null && panel.avgOverallScore != null;
+  const othersReviews = panel ? panel.ratings.filter((r) => r.id !== myReview?.id) : [];
 
   return (
     <>
@@ -60,46 +75,69 @@ export function CompanyRatingsDrawer({
             <p style={muted}>Loading ratings…</p>
           ) : error ? (
             <p style={{ fontSize: '.85rem', color: 'var(--red)' }}>Could not load ratings. Please try again.</p>
-          ) : !panel || panel.avgOverallScore == null ? (
-            <p style={muted}>
-              Ratings appear once a company has 5 or more approved reviews
-              {panel ? ` · ${panel.reviewCount} so far` : ''}.
-            </p>
           ) : (
             <>
-              <div style={overallRow}>
-                <span style={overallScore}>{panel.avgOverallScore.toFixed(1)}</span>
-                <div>
-                  <div style={overallOutOf}>/ 10 overall</div>
-                  <div style={muted}>{panel.reviewCount} reviews</div>
-                </div>
-              </div>
+              <span style={isPublic ? statusBadgePublic : statusBadgePending}>
+                {isPublic ? 'Public' : 'Not yet public (not enough reviews)'}
+              </span>
 
-              <div style={statGrid}>
-                {CATEGORY_LABELS.map(({ key, label }) => {
-                  const value = panel[key] as number | null;
-                  return (
-                    <div key={key} style={statCell}>
-                      <div style={statLabel}>{label}</div>
-                      <div style={statValue}>{value != null ? value.toFixed(1) : '—'}</div>
+              {isPublic && panel && (
+                <>
+                  <div style={overallRow}>
+                    <span style={overallScore}>{panel.avgOverallScore!.toFixed(1)}</span>
+                    <div>
+                      <div style={overallOutOf}>/ 10 overall</div>
+                      <div style={muted}>{panel.reviewCount} reviews</div>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
 
-              <p style={sectionLabel}>Latest reviews</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
-                {panel.ratings.map((r) => <ReviewCard key={r.id} review={r} />)}
+                  <div style={statGrid}>
+                    {CATEGORY_LABELS.map(({ key, label }) => {
+                      const value = panel[key] as number | null;
+                      return (
+                        <div key={key} style={statCell}>
+                          <div style={statLabel}>{label}</div>
+                          <div style={statValue}>{value != null ? value.toFixed(1) : '—'}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
 
-                {Array.from({ length: Math.min(panel.lockedCount, 2) }).map((_, i) => (
-                  <LockedReviewCard key={i} />
-                ))}
-              </div>
-
-              {panel.lockedCount > 0 && (
-                <p style={{ ...muted, marginTop: '.75rem', textAlign: 'center' }}>
-                  {panel.lockedCount} more review{panel.lockedCount === 1 ? '' : 's'} — unlock for 15 tokens or by card (coming soon)
+              {!isPublic && !myReview && (
+                <p style={muted}>
+                  Ratings appear here once this company has 5 or more approved reviews
+                  {panel ? ` · ${panel.reviewCount} so far` : ''}.
                 </p>
+              )}
+
+              {myReview && (
+                <>
+                  <p style={sectionLabel}>Your rating for this company</p>
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <ReviewCard review={myReview} />
+                  </div>
+                </>
+              )}
+
+              {isPublic && (
+                <>
+                  <p style={sectionLabel}>{myReview ? 'Other reviews' : 'Latest reviews'}</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
+                    {othersReviews.map((r) => <ReviewCard key={r.id} review={r} />)}
+
+                    {Array.from({ length: Math.min(panel!.lockedCount, 2) }).map((_, i) => (
+                      <LockedReviewCard key={i} />
+                    ))}
+                  </div>
+
+                  {panel!.lockedCount > 0 && (
+                    <p style={{ ...muted, marginTop: '.75rem', textAlign: 'center' }}>
+                      {panel!.lockedCount} more review{panel!.lockedCount === 1 ? '' : 's'} — unlock for 15 tokens or by card (coming soon)
+                    </p>
+                  )}
+                </>
               )}
             </>
           )}
@@ -148,7 +186,7 @@ const backdrop: React.CSSProperties = {
 };
 
 const drawer: React.CSSProperties = {
-  position: 'fixed', top: 0, right: 0, height: '100vh', width: 'min(420px, 100vw)',
+  position: 'fixed', top: 0, right: 0, height: '100vh', width: '60vw', minWidth: 320, maxWidth: '100vw',
   background: 'white', zIndex: 41, display: 'flex', flexDirection: 'column',
   boxShadow: '-8px 0 24px rgba(15, 23, 42, .18)',
 };
@@ -170,6 +208,19 @@ const scrollBody: React.CSSProperties = {
 };
 
 const muted: React.CSSProperties = { fontSize: '.85rem', color: 'var(--muted)' };
+
+const statusBadge: React.CSSProperties = {
+  display: 'inline-block', fontSize: '.7rem', fontWeight: 700,
+  padding: '.2rem .6rem', borderRadius: 999, marginBottom: '1rem',
+};
+
+const statusBadgePublic: React.CSSProperties = {
+  ...statusBadge, background: '#ECFDF5', color: 'var(--green)',
+};
+
+const statusBadgePending: React.CSSProperties = {
+  ...statusBadge, background: 'var(--bg)', color: 'var(--muted)',
+};
 
 const overallRow: React.CSSProperties = {
   display: 'flex', alignItems: 'baseline', gap: '.6rem', marginBottom: '1rem',

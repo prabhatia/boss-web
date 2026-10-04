@@ -13,7 +13,7 @@ const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').concat('#');
 const ANY_INDUSTRY = 'Any';
 
 export function PeopleClient() {
-  const { signedIn, hasRatedManager } = useMyRatingStatus();
+  const { signedIn, hasRatedManager, myManagerRatingEmploymentHistoryId } = useMyRatingStatus();
   const [people, setPeople] = useState<PersonSearchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -184,7 +184,7 @@ export function PeopleClient() {
                       </p>
                       <button onClick={clearSearch} style={clearLink}>Clear search</button>
                     </div>
-                    <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} />
+                    <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} myManagerRatingEmploymentHistoryId={myManagerRatingEmploymentHistoryId} />
                   </>
                 ) : companyFilter ? (
                   <>
@@ -194,12 +194,12 @@ export function PeopleClient() {
                       </p>
                       <button onClick={() => setCompanyFilter('')} style={clearLink}>Clear</button>
                     </div>
-                    <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} />
+                    <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} myManagerRatingEmploymentHistoryId={myManagerRatingEmploymentHistoryId} />
                   </>
                 ) : !selectedLetter ? (
                   <p style={muted}>Pick a letter to browse people, search by name, or select a company above.</p>
                 ) : results.length > 0 ? (
-                  <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} />
+                  <PeopleList results={results} signedIn={signedIn} hasRatedManager={hasRatedManager} myManagerRatingEmploymentHistoryId={myManagerRatingEmploymentHistoryId} />
                 ) : (
                   <p style={muted}>No one under &ldquo;{selectedLetter}&rdquo; yet.</p>
                 )}
@@ -216,10 +216,12 @@ function PeopleList({
   results,
   signedIn,
   hasRatedManager,
+  myManagerRatingEmploymentHistoryId,
 }: {
   results: PersonSearchResult[];
   signedIn: boolean;
   hasRatedManager: (managerId: string) => boolean;
+  myManagerRatingEmploymentHistoryId: (managerId: string) => string | undefined;
 }) {
   const router = useRouter();
   const [ratingsFor, setRatingsFor] = useState<PersonSearchResult | null>(null);
@@ -239,15 +241,17 @@ function PeopleList({
               <>
                 <div style={personScoreVal}>{p.avgOverallScore.toFixed(1)}/10</div>
                 <div style={personScoreLbl}>{p.reviewCount} reviews</div>
-                <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRatingsFor(p); }}
-                  style={seeRatingsLink}
-                >
-                  See Ratings
-                </button>
               </>
             ) : (
               <div style={personPending}>Scores appear at 3 reviews · {p.reviewCount} so far</div>
+            )}
+            {(p.avgOverallScore != null || hasRatedManager(p.id)) && (
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRatingsFor(p); }}
+                style={seeRatingsLink}
+              >
+                See Ratings
+              </button>
             )}
             {signedIn && (
               <button
@@ -271,6 +275,7 @@ function PeopleList({
         <ManagerRatingsDrawer
           managerId={ratingsFor.id}
           managerName={ratingsFor.displayLabel}
+          myEmploymentHistoryId={myManagerRatingEmploymentHistoryId(ratingsFor.id)}
           onClose={() => setRatingsFor(null)}
         />
       )}
