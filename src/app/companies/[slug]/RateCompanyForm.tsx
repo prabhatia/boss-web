@@ -1,13 +1,33 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api, ApiError, type EmploymentHistoryResponse, type SubmitCompanyRatingRequest } from '@/lib/api';
+import { api, ApiError, type CompanyReviewResponse, type EmploymentHistoryResponse, type SubmitCompanyRatingRequest } from '@/lib/api';
 import { RatingMetricsForm, EMPTY_EXTRA_FIELDS, type RatingExtraFields } from '@/components/ratings/RatingMetricsForm';
 import { defaultMetricValues, DEFAULT_WOULD_SCORE, type MetricKey, type MetricValue, type MetricValues } from '@/components/ratings/metrics';
 import { NewPositionForm } from './NewPositionForm';
 import { SalaryForm } from './SalaryForm';
 
 type State = 'loading' | 'noPosition' | 'ready' | 'submitting' | 'done' | 'error';
+
+function valuesFromExisting(rating: CompanyReviewResponse): MetricValues {
+  return {
+    workLifeBalance: { score: rating.workLifeBalance.score, comment: rating.workLifeBalance.comment ?? '' },
+    managementEmpathy: { score: rating.managementEmpathy.score, comment: rating.managementEmpathy.comment ?? '' },
+    advancementOpportunity: { score: rating.advancementOpportunity.score, comment: rating.advancementOpportunity.comment ?? '' },
+    benefits: { score: rating.benefits.score, comment: rating.benefits.comment ?? '' },
+    upperManagementEthos: { score: rating.upperManagementEthos.score, comment: rating.upperManagementEthos.comment ?? '' },
+  };
+}
+
+function extraFromExisting(rating: CompanyReviewResponse): RatingExtraFields {
+  return {
+    roleTitle: rating.roleTitle ?? '',
+    employmentType: rating.employmentType ?? '',
+    stillEmployed: rating.stillEmployed == null ? '' : rating.stillEmployed ? 'true' : 'false',
+    yearsAtCompany: rating.yearsAtCompany != null ? String(rating.yearsAtCompany) : '',
+    overallReviewText: rating.overallReviewText ?? '',
+  };
+}
 
 export function RateCompanyForm({ companyId, onRated }: { companyId: string; onRated?: () => void }) {
   const [state, setState] = useState<State>('loading');
@@ -38,6 +58,33 @@ export function RateCompanyForm({ companyId, onRated }: { companyId: string; onR
     })();
     return () => { cancelled = true; };
   }, [companyId]);
+
+  // Pre-fills the form with the caller's own previous rating for whichever
+  // position is selected, if one exists — covers both "rate again" and
+  // switching the position dropdown to one already rated.
+  useEffect(() => {
+    if (!employmentHistoryId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const existing = await api.get<CompanyReviewResponse>(
+          'company', `/ratings/company/mine?employmentHistoryId=${employmentHistoryId}`
+        );
+        if (cancelled) return;
+        setValues(valuesFromExisting(existing));
+        setWouldScore(existing.wouldRecommendScore);
+        setExtra(extraFromExisting(existing));
+      } catch (e) {
+        if (cancelled) return;
+        if (e instanceof ApiError && e.status === 404) {
+          setValues(defaultMetricValues('company'));
+          setWouldScore(DEFAULT_WOULD_SCORE);
+          setExtra(EMPTY_EXTRA_FIELDS);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [employmentHistoryId]);
 
   function updateMetric(key: MetricKey, patch: Partial<MetricValue>) {
     setValues((v) => ({ ...v, [key]: { ...v[key], ...patch } }));

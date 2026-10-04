@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { api, type PersonSearchResult } from '@/lib/api';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { api, recordSearch, type PersonSearchResult } from '@/lib/api';
 import { useMyRatingStatus } from '@/lib/useMyRatingStatus';
 import { IndustryBrowser } from './IndustryBrowser';
 import { ManagerRatingsDrawer } from '@/components/ratings/ManagerRatingsDrawer';
@@ -13,14 +13,19 @@ const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').concat('#');
 const ANY_INDUSTRY = 'Any';
 
 export function PeopleClient() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { signedIn, hasRatedManager, myManagerRatingEmploymentHistoryId, myManagerOverallScore } = useMyRatingStatus();
   const [people, setPeople] = useState<PersonSearchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [retryToken, setRetryToken] = useState(0);
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
-  const [searchInput, setSearchInput] = useState('');
-  const [searchTerm, setSearchTerm] = useState<string | null>(null);
+  // Initialized from ?q= so a browser Back navigation (or a link from search
+  // history) lands on this exact URL and restores the same search results,
+  // instead of the blank page with an empty search box.
+  const [searchInput, setSearchInput] = useState(() => searchParams.get('q') ?? '');
+  const [searchTerm, setSearchTerm] = useState<string | null>(() => searchParams.get('q'));
   const [companyFilter, setCompanyFilter] = useState('');
 
   const [industries, setIndustries] = useState<string[]>([]);
@@ -72,11 +77,14 @@ export function PeopleClient() {
     setSearchTerm(q);
     setSelectedLetter(null);
     setCompanyFilter('');
+    router.replace(`/people?q=${encodeURIComponent(q)}`);
+    if (signedIn) recordSearch('PERSON', q);
   }
 
   function clearSearch() {
     setSearchTerm(null);
     setSearchInput('');
+    router.replace('/people');
   }
 
   function selectCompany(name: string) {
@@ -99,11 +107,20 @@ export function PeopleClient() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div className="container">
-          <h1 className={styles.title}>People</h1>
-          <p className={styles.sub}>
-            Search for a manager by first or last name, or browse alphabetically, to
-            see their ratings. Scores appear once a person has three or more approved reviews.
-          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+            <div>
+              <h1 className={styles.title}>People</h1>
+              <p className={styles.sub}>
+                Search for a manager by first or last name, or browse alphabetically, to
+                see their ratings. Scores appear once a person has three or more approved reviews.
+              </p>
+            </div>
+            {signedIn && (
+              <Link href="/search-history" style={{ fontSize: '.82rem', fontWeight: 600, color: 'var(--primary)', textDecoration: 'underline', flexShrink: 0 }}>
+                Your search history
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 

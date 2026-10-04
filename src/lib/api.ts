@@ -343,6 +343,23 @@ export interface RatingStatus {
   managerOverallScore: number | null;
 }
 
+export type SearchType = 'PERSON' | 'COMPANY';
+
+/** One row in the "search history" link's paginated list — mirrors SearchHistoryDto.SearchHistoryEntry. */
+export interface SearchHistoryEntry {
+  id: string;
+  searchType: SearchType;
+  queryText: string;
+  createdAt: string;
+}
+
+/** Fire-and-forget: records a name search on /people or /companies for the signed-in user's history. */
+export function recordSearch(searchType: SearchType, queryText: string): void {
+  api.post('company', '/search-history', { searchType, queryText }).catch(() => {
+    // Best-effort only — a logging failure should never block or surface to the search itself.
+  });
+}
+
 /** One review row inside a CompanyRatingsPanel — mirrors RatingDto.CompanyRatingResponse. */
 export interface CompanyReviewResponse {
   id: string;

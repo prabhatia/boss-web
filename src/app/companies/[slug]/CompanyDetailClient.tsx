@@ -115,9 +115,10 @@ export function CompanyDetailClient({ slug }: { slug: string }) {
           {showRateForm ? (
             <RateCompanyForm companyId={company.id} />
           ) : hasRatedCompany(company.id) ? (
-            <button className="btn btn-outline" onClick={() => setShowRatingsDrawer(true)}>
-              See Ratings
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem', alignItems: 'flex-start' }}>
+              <button onClick={() => setShowRatingsDrawer(true)} style={inlineLink}>See Ratings</button>
+              <button onClick={() => setShowRateForm(true)} style={inlineLink}>Rate this company again</button>
+            </div>
           ) : (
             <button className="btn btn-primary" onClick={() => setShowRateForm(true)}>
               Rate This Company
@@ -160,4 +161,10 @@ const statusBadgePublic: React.CSSProperties = {
 
 const statusBadgePending: React.CSSProperties = {
   ...statusBadge, background: 'white', color: 'var(--muted)',
+};
+
+const inlineLink: React.CSSProperties = {
+  border: 'none', background: 'none', padding: 0, fontFamily: 'inherit',
+  fontSize: '.9rem', fontWeight: 700, color: 'var(--primary)',
+  textDecoration: 'underline', cursor: 'pointer',
 };

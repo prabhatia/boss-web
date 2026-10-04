@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { api, type CompanySearchResult } from '@/lib/api';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { api, recordSearch, type CompanySearchResult } from '@/lib/api';
 import { useMyRatingStatus } from '@/lib/useMyRatingStatus';
 import { CompanyRatingsDrawer } from '@/components/ratings/CompanyRatingsDrawer';
 import styles from './companies.module.css';
@@ -14,11 +14,15 @@ const ANY_INDUSTRY = 'All';
 
 export function CompaniesClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signedIn, hasRatedCompany, myCompanyRatingEmploymentHistoryId, myCompanyOverallScore } = useMyRatingStatus();
   const [companies, setCompanies] = useState<CompanySearchResult[]>([]);
   const [industries, setIndustries] = useState<string[]>([]);
   const [industry, setIndustry] = useState(ANY_INDUSTRY);
-  const [query, setQuery] = useState('');
+  // Initialized from ?q= so a browser Back navigation (or a link from search
+  // history) lands on this exact URL and restores the same search results,
+  // instead of the blank page with an empty search box.
+  const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const [loading, setLoading] = useState(true);
   const [unavailable, setUnavailable] = useState(false);
   const [ratingsFor, setRatingsFor] = useState<CompanySearchResult | null>(null);
@@ -54,6 +58,21 @@ export function CompaniesClient() {
     return () => { cancelled = true; };
   }, [industry, query]);
 
+  // Syncs the query into the URL (and logs it to search history) after the
+  // user pauses typing — debounced so every keystroke doesn't spam either.
+  useEffect(() => {
+    const trimmed = query.trim();
+    const handle = setTimeout(() => {
+      if (trimmed) {
+        router.replace(`/companies?q=${encodeURIComponent(trimmed)}`);
+        if (signedIn) recordSearch('COMPANY', trimmed);
+      } else {
+        router.replace('/companies');
+      }
+    }, 600);
+    return () => clearTimeout(handle);
+  }, [query, router, signedIn]);
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -67,9 +86,16 @@ export function CompaniesClient() {
                 five or more approved reviews.
               </p>
             </div>
-            <Link href="/companies/new" className="btn btn-outline" style={{ flexShrink: 0 }}>
-              Add your company
-            </Link>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '.5rem', flexShrink: 0 }}>
+              <Link href="/companies/new" className="btn btn-outline">
+                Add your company
+              </Link>
+              {signedIn && (
+                <Link href="/search-history" style={{ fontSize: '.82rem', fontWeight: 600, color: 'var(--primary)', textDecoration: 'underline' }}>
+                  Your search history
+                </Link>
+              )}
+            </div>
           </div>
 
           <div className={styles.controls}>
