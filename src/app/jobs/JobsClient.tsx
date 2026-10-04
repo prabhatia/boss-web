@@ -22,9 +22,27 @@ interface JobSummary {
   createdAt: string;
 }
 
+interface ExternalJobSummary {
+  id: string;
+  source: string;
+  title: string;
+  companyName: string;
+  location: string | null;
+  isRemote: boolean;
+  employmentType: string | null;
+  applyUrl: string;
+  postedAt: string | null;
+}
+
 interface Page<T> { content: T[]; totalElements: number; }
 
 const CATEGORIES = ['All', 'Engineering', 'Product', 'Design', 'Sales', 'Marketing'];
+
+const SOURCE_LABELS: Record<string, string> = {
+  ARBEITNOW: 'Arbeitnow',
+  REMOTEOK: 'RemoteOK',
+  USAJOBS: 'USAJOBS',
+};
 
 export function JobsClient({ signedIn }: { signedIn: boolean }) {
   const [jobs, setJobs] = useState<JobSummary[]>([]);
@@ -32,6 +50,7 @@ export function JobsClient({ signedIn }: { signedIn: boolean }) {
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [unavailable, setUnavailable] = useState(false);
+  const [externalJobs, setExternalJobs] = useState<ExternalJobSummary[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,6 +72,23 @@ export function JobsClient({ signedIn }: { signedIn: boolean }) {
     })();
     return () => { cancelled = true; };
   }, [category, remoteOnly]);
+
+  // Best-effort section — imported listings from open job boards. A failure
+  // here just means the section doesn't render, it never blocks the page.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const params = new URLSearchParams({ size: '12' });
+        if (remoteOnly) params.set('isRemote', 'true');
+        const res = await api.get<Page<ExternalJobSummary>>('jobs', `/jobs/external?${params}`);
+        if (!cancelled) setExternalJobs(res.content ?? []);
+      } catch {
+        if (!cancelled) setExternalJobs([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [remoteOnly]);
 
   return (
     <main className={styles.page}>
@@ -150,7 +186,57 @@ export function JobsClient({ signedIn }: { signedIn: boolean }) {
             ))}
           </div>
         )}
+
+        {externalJobs.length > 0 && (
+          <div style={{ marginTop: '3rem' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--ink)', marginBottom: '.25rem' }}>
+              More jobs from across the web
+            </h2>
+            <p style={{ fontSize: '.82rem', color: 'var(--muted)', marginBottom: '1rem' }}>
+              Imported from open job boards — applying takes you to the original posting.
+            </p>
+            <div className={styles.list}>
+              {externalJobs.map((j) => (
+                <article key={j.id} className={styles.jobCard}>
+                  <div className={styles.jobLogo}>{j.companyName[0]}</div>
+
+                  <div className={styles.jobBody}>
+                    <div className={styles.jobTitleRow}>
+                      <h2 className={styles.jobTitle}>{j.title}</h2>
+                      <span style={sourceBadge}>{SOURCE_LABELS[j.source] ?? j.source}</span>
+                    </div>
+                    <div className={styles.jobMeta}>
+                      <span>{j.companyName}</span>
+                      {j.location && <span>· {j.location}</span>}
+                      {j.isRemote && <span className={styles.remote}>· Remote</span>}
+                    </div>
+                  </div>
+
+                  <a
+                    href={j.applyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-outline"
+                    style={{ flexShrink: 0 }}
+                  >
+                    Apply
+                  </a>
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
 }
+
+const sourceBadge: React.CSSProperties = {
+  flexShrink: 0,
+  fontSize: '.68rem',
+  fontWeight: 700,
+  color: 'var(--muted)',
+  background: 'var(--bg)',
+  borderRadius: 999,
+  padding: '.2rem .55rem',
+};
